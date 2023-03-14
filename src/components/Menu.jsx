@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { Nav, Container } from "react-bootstrap";
 import otisfuse from '../img/of.png';
-import Profile from "./Profile";
 
 const Menu = () => {
   return (
@@ -12,7 +11,7 @@ const Menu = () => {
           className="d-flex align-items-center col-md-3 mb-2 mb-md-0 text-dark text-decoration-none"
         >
           <img src={otisfuse} alt="" className="img-fluid" />
-          OtisFuse Essays
+          Talk To Historical Figures
         </Link>
         <Nav>
           <ul className="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
@@ -30,9 +29,6 @@ const Menu = () => {
               <Link to="/about" className="nav-link px-2 link-secondary">
                 About
               </Link>
-            </li>
-            <li>
-              <Profile />
             </li>
           </ul>
         </Nav>
