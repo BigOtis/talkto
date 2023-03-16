@@ -1,8 +1,10 @@
 const { Configuration, OpenAIApi } = require("openai");
 
-const openai = new OpenAIApi({
-  api_key: process.env.OPENAI_API_KEY,
+const configuration = new Configuration({
+  apiKey: process.env.API_KEY_VALUE,
 });
+
+const openai = new OpenAIApi(configuration);
 
 // Helper function to call OpenAI to generate a chat response
 const generateChatResponse = async (contact, messages) => {
@@ -32,10 +34,10 @@ const generateChatResponse = async (contact, messages) => {
   // Add a system message for the assistant to act like the contact
   formattedMessages.unshift({
     role: "system",
-    content: `You are an AI assistant. The person you are chatting with is a fan of ${contact.name}. Respond as if you are ${contact.name}.`,
+    content: `Do not mention that you are an AI language model. The person you are chatting with is a fan of ${contact.name}. Respond as if you are ${contact.name} through short text message. Use information you know about ${contact.name} to make your responses seem more realistic.`,
   });
 
-  const completion = await openai.createCompletion({
+  const completion = await openai.createChatCompletion({
     model: "gpt-3.5-turbo",
     messages: formattedMessages,
   });

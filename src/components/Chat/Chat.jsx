@@ -20,7 +20,8 @@ const Chat = () => {
 
     const me = { avatar: "https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava1-bg.webp", name: "me" }
     const toni = { avatar: "https://images.gr-assets.com/authors/1494211316p8/3534.jpg", name: "Toni Morrison", messages: [{"message": "There is no time for despair, no place for self-pity, no need for silence, no room for fear. We speak, we write, we do language. That is how civilizations heal.", "time": "Now", "isUser": false}] }
-
+    const messagesEndRef = useRef(null);
+    
     // if local storage is undefined, initialize it
     if (localStorage.getItem("contacts") === null) {
         localStorage.setItem("contacts", JSON.stringify([toni]));
@@ -39,7 +40,7 @@ const Chat = () => {
     useEffect(() => {
       localStorage.setItem("contacts", JSON.stringify(contacts));
       localStorage.setItem("currentContact", currentContact);;      
-    });
+    }, [contacts, currentContact]);
     
     const handleContactClick = (index) => {
       setCurrentContact(index);
@@ -72,13 +73,15 @@ const Chat = () => {
     };
 
     const handleSendMessage = async (event) => {
+      const updatedContacts = [...contacts];
       // get the current contact and append our message to it's message list
       contacts[currentContact].messages.push({
         message: event.target.value,
         time: getDateTimeString(),
         isUser: true,
       });
-      // update the message count
+
+      setContacts(updatedContacts);
       setMessageCount(messageCount + 1);
       
       // clear the input now that the message has been sent
@@ -89,8 +92,6 @@ const Chat = () => {
       // Call the chat API to get a response from the assistant
       const response = await fetchChatResponse(contacts[currentContact], contacts[currentContact].messages);
 
-      setIsFetchingResponse(false);
-
       if (response) {
         // Add the response to the messages array
         contacts[currentContact].messages.push({
@@ -98,8 +99,11 @@ const Chat = () => {
           time: "Now",
           isUser: false,
         });
-        // Update the message count
+
+        setContacts(updatedContacts);
         setMessageCount(messageCount + 1);
+        setIsFetchingResponse(false);
+
       } else {
         console.error("Error fetching chat response");
       }
@@ -149,7 +153,7 @@ const Chat = () => {
                           width={width} // Adjust the width as needed
                           height={height} // Adjust the height as needed
                           itemCount={ contacts[currentContact].messages.length}
-                          itemSize={70} // Adjust the height of each message row as needed
+                          itemSize={100} // Adjust the height of each message row as needed
                           children={msgRenderer}
                         />     
                       )}     

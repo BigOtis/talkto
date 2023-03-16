@@ -19,14 +19,14 @@ const Message = ({ message, person, time, isUser }) => {
                     {time}
                 </p>
                 </div>
-                <Image src={userAvatar} roundedCircle style={{width: '60px', height: '50px', padding: '2px' }}/>
+                <Image src={userAvatar} roundedCircle style={{width: '60px', height: '50px', padding: '2px', objectFit: 'cover' }}/>
             </div>
         )
     }
     else {
         return( 
             <div className="d-flex flex-row justify-content-start">
-                <Image src={person.avatar} roundedCircle style={{width: '60px', height: '50px' }}/>
+                <Image src={person.avatar} roundedCircle style={{width: '60px', height: '50px', objectFit: 'cover' }}/>
                 <div>
                 <p
                     className="small p-2 ms-3 mb-1 rounded-3"

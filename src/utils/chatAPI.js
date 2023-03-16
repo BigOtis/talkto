@@ -13,7 +13,7 @@ const fetchChatResponse = async (contact, messages) => {
       });
   
       const data = await response.json();
-      return data.chatResponse;
+      return data.message;
     } catch (error) {
       console.error("Error fetching chat response:", error);
       return null;
