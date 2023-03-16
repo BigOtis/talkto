@@ -2,8 +2,8 @@ import React from "react";
 import { Image } from "react-bootstrap";
 
 
-const Contact = ({ person }) => {
-
+const Contact = ({ person, handleContactClick, index }) => {
+  
     var lastMessage = person.messages[person.messages.length - 1].message;
     // if the last message is too long, truncate it
     if (lastMessage.length > 30) {
@@ -14,6 +14,7 @@ const Contact = ({ person }) => {
         <a
           href="#!"
           className="d-flex justify-content-between"
+          onClick={() => handleContactClick(index)}
         >
           <div className="d-flex flex-row">
             <div>

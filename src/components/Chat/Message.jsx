@@ -15,7 +15,7 @@ const Message = ({ message, person, time, isUser }) => {
                 >
                     {message}
                 </p>
-                <p className="small ms-3 mb-3 rounded-3 text-muted float-end">
+                <p className="small ms-3 mb-3 rounded-3 text-muted float-start">
                     {time}
                 </p>
                 </div>

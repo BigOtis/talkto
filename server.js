@@ -2,11 +2,6 @@ const express = require('express');
 const path = require("path");
 const router = require('./server/AIRouter');
 const bodyParser = require('body-parser');
-const cors = require('cors');
-
-const corsOptions = {
-    origin: 'https://pagead2.googlesyndication.com',
-  };
 
 // Creating express server
 const app = express();
@@ -16,7 +11,6 @@ const PORT = process.env.PORT || 4000;
 // router for the api layer
 app.use(bodyParser.json());
 app.use('/api', router);
-app.use(cors(corsOptions));
 
 // router for the static files
 app.use(express.static(path.join(__dirname, "build"), { maxAge: "10s"}));

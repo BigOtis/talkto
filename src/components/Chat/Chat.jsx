@@ -12,6 +12,9 @@ import {
 import Message from "./Message";
 import Contact from "./Contact";
 import { useState, useEffect } from "react";
+import { FixedSizeList as List } from "react-window";
+import AutoSizer from "react-virtualized-auto-sizer";
+import fetchChatResponse from "../../utils/chatAPI";
 
 const Chat = () => {  
 
@@ -30,14 +33,78 @@ const Chat = () => {
     const [contacts, setContacts] = useState(JSON.parse(localStorage.getItem("contacts")));
     const [currentContact, setCurrentContact] = useState(localStorage.getItem("currentContact"));
     const [messageCount, setMessageCount] = useState(0);
+    const [isFetchingResponse, setIsFetchingResponse] = useState(false);
 
     // update local storage every time contacts or currentContact changes
     useEffect(() => {
       localStorage.setItem("contacts", JSON.stringify(contacts));
       localStorage.setItem("currentContact", currentContact);;      
     });
+    
+    const handleContactClick = (index) => {
+      setCurrentContact(index);
+    };
 
+    const handleNewConversation = async (event) => {
+      if (event.keyCode === 13) {
+        const name = event.target.value.trim();
+        if (name) {
+          const avatarUrl = await fetchImageUrl(name);
+          const newContact = {
+            avatar: avatarUrl || "https://via.placeholder.com/150",
+            name: name,
+            messages: [{"message": "Hello...", "time": "Now", "isUser": false}],
+          };
+          setContacts([...contacts, newContact]);
+          setCurrentContact(contacts.length);
+          event.target.value = "";
+        }
+      }
+    };
 
+    const msgRenderer = ({ index, style }) => {
+      const msg = contacts[currentContact].messages[index];
+      return (
+        <div key={index} style={{ ...style }}>
+          <Message key={index} message={msg.message} person={contacts[currentContact]} isUser={msg.isUser} time={msg.time} />
+        </div>
+      );
+    };
+
+    const handleSendMessage = async (event) => {
+      // get the current contact and append our message to it's message list
+      contacts[currentContact].messages.push({
+        message: event.target.value,
+        time: getDateTimeString(),
+        isUser: true,
+      });
+      // update the message count
+      setMessageCount(messageCount + 1);
+      
+      // clear the input now that the message has been sent
+      event.target.value = "";
+
+      setIsFetchingResponse(true);
+
+      // Call the chat API to get a response from the assistant
+      const response = await fetchChatResponse(contacts[currentContact], contacts[currentContact].messages);
+
+      setIsFetchingResponse(false);
+
+      if (response) {
+        // Add the response to the messages array
+        contacts[currentContact].messages.push({
+          message: response,
+          time: "Now",
+          isUser: false,
+        });
+        // Update the message count
+        setMessageCount(messageCount + 1);
+      } else {
+        console.error("Error fetching chat response");
+      }
+  };
+    
     return (
       <MDBContainer fluid className="py-5" style={{ backgroundColor: "#CDC4F9" }}>
         <MDBRow>
@@ -52,6 +119,7 @@ const Chat = () => {
                           className="form-control rounded"
                           placeholder="New Conversation"
                           type="search"
+                          onKeyDown={handleNewConversation}
                         />
                         <span
                           className="input-group-text border-0"
@@ -61,15 +129,32 @@ const Chat = () => {
                         </span>
                       </MDBInputGroup>
 
-                        <MDBTypography listUnStyled className="mb-0">
-                          <Contact person={contacts[currentContact]}></Contact>
-                        </MDBTypography>
+                      <MDBTypography listUnStyled className="mb-0">
+                        {contacts.map((person, index) => (
+                          <Contact
+                            key={index}
+                            index={index}
+                            person={person}
+                            handleContactClick={handleContactClick}
+                          />
+                        ))}
+                      </MDBTypography>
                     </div>
                   </MDBCol>
                   <MDBCol md="6" lg="7" xl="8">
-                    {contacts[currentContact].messages.map((msg, index) => (
-                      <Message key={index} message={msg.message} person={contacts[currentContact]} isUser={msg.isUser} time={msg.time} />
-                    ))}
+                  <div className="messages-section" style={{ width: "100%", height: "calc(100vh - 200px)" }}>
+                    <AutoSizer>
+                      {({ width, height }) => (
+                        <List
+                          width={width} // Adjust the width as needed
+                          height={height} // Adjust the height as needed
+                          itemCount={ contacts[currentContact].messages.length}
+                          itemSize={70} // Adjust the height of each message row as needed
+                          children={msgRenderer}
+                        />     
+                      )}     
+                      </AutoSizer>
+                    </div>
 
                     <div className="text-muted d-flex justify-content-start align-items-center pe-3 pt-3 mt-2">
                       <img
@@ -77,31 +162,20 @@ const Chat = () => {
                         alt="avatar 3"
                         style={{ width: "40px", height: "100%" }}
                       />
-                  <input
-                    type="text"
-                    className="form-control form-control-lg"
-                    id="exampleFormControlInput2"
-                    placeholder="Type message"
-                    maxLength="200"
-                    onKeyDown={(event) => {
-                      // if the enter button was pressed
-                      if (event.keyCode === 13) {
-                        console.log(event.target.value);
-                        // get the current contact and append our message to it's message list
-                        contacts[currentContact].messages.push({
-                          message: event.target.value,
-                          time: "Now",
-                          isUser: true,
-                        });
-                        // update the message count
-                        setMessageCount(messageCount + 1);
-                        
-                        // clear the input now that the message has been sent
-                        event.target.value = "";
-                      }
-                    }}
-                  />
-                  <a className="ms-1 text-muted" href="#!">
+                      <input
+                        type="text"
+                        className="form-control form-control-lg"
+                        id="exampleFormControlInput2"
+                        placeholder="Type message"
+                        maxLength="200"
+                        disabled={isFetchingResponse}
+                        onKeyDown={(event) => {
+                          if (!isFetchingResponse && event.keyCode === 13) {
+                            handleSendMessage(event);
+                          }
+                        }}
+                      />
+                      <a className="ms-1 text-muted" href="#!">
                     <MDBIcon fas icon="paperclip" />
                   </a>
                   <a className="ms-3 text-muted" href="#!">
@@ -120,5 +194,30 @@ const Chat = () => {
       </MDBContainer>
     );
   }
+
+const fetchImageUrl = async (searchTerm) => {
+  try {
+    const response = await fetch("/api/getImage", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ searchTerm }),
+    });
+
+    const data = await response.json();
+    return data.imageUrl;
+  } catch (error) {
+    console.error("Error fetching image URL:", error);
+    return null;
+  }
+};
+  
+const getDateTimeString = () => {
+  const now = new Date();
+  const date = now.toLocaleDateString();
+  const time = now.toLocaleTimeString();
+  return `${date} ${time}`;
+};
 
 export default Chat;
