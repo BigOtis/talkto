@@ -11,17 +11,18 @@ import {
 } from "mdb-react-ui-kit";
 import Message from "./Message";
 import Contact from "./Contact";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { FixedSizeList as List } from "react-window";
 import AutoSizer from "react-virtualized-auto-sizer";
 import fetchChatResponse from "../../utils/chatAPI";
+import { Spinner } from "react-bootstrap";
 
 const Chat = () => {  
 
     const me = { avatar: "https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava1-bg.webp", name: "me" }
     const toni = { avatar: "https://images.gr-assets.com/authors/1494211316p8/3534.jpg", name: "Toni Morrison", messages: [{"message": "There is no time for despair, no place for self-pity, no need for silence, no room for fear. We speak, we write, we do language. That is how civilizations heal.", "time": "Now", "isUser": false}] }
     const messagesEndRef = useRef(null);
-    
+
     // if local storage is undefined, initialize it
     if (localStorage.getItem("contacts") === null) {
         localStorage.setItem("contacts", JSON.stringify([toni]));
@@ -39,8 +40,9 @@ const Chat = () => {
     // update local storage every time contacts or currentContact changes
     useEffect(() => {
       localStorage.setItem("contacts", JSON.stringify(contacts));
-      localStorage.setItem("currentContact", currentContact);;      
-    }, [contacts, currentContact]);
+      localStorage.setItem("currentContact", currentContact);
+      scrollToBottom();
+    }, [contacts, currentContact, messageCount]);
     
     const handleContactClick = (index) => {
       setCurrentContact(index);
@@ -65,11 +67,23 @@ const Chat = () => {
 
     const msgRenderer = ({ index, style }) => {
       const msg = contacts[currentContact].messages[index];
+      // if this is the last message in the messages list, add a ref to it so we can scroll to it
+      if (index === contacts[currentContact].messages.length - 1) {
+        return (
+          <div key={index} style={{ ...style }} ref={messagesEndRef}>
+            <Message key={index} message={msg.message} person={contacts[currentContact]} isUser={msg.isUser} time={msg.time} />
+          </div>
+        );
+      }
       return (
         <div key={index} style={{ ...style }}>
           <Message key={index} message={msg.message} person={contacts[currentContact]} isUser={msg.isUser} time={msg.time} />
         </div>
       );
+    };
+
+    const scrollToBottom = () => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
     const handleSendMessage = async (event) => {
@@ -96,17 +110,30 @@ const Chat = () => {
         // Add the response to the messages array
         contacts[currentContact].messages.push({
           message: response,
-          time: "Now",
+          time: getDateTimeString(),
           isUser: false,
         });
 
-        setContacts(updatedContacts);
+        setContacts([...contacts]);
         setMessageCount(messageCount + 1);
         setIsFetchingResponse(false);
 
       } else {
         console.error("Error fetching chat response");
       }
+  };
+
+  const renderLoadingIndicator = () => {
+    if (isFetchingResponse) {
+      return (
+        <div className="d-flex justify-content-center mt-3">
+          <Spinner animation="grow" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </Spinner>
+        </div>
+      );
+    }
+    return null;
   };
     
     return (
@@ -159,7 +186,7 @@ const Chat = () => {
                       )}     
                       </AutoSizer>
                     </div>
-
+                    {renderLoadingIndicator()}
                     <div className="text-muted d-flex justify-content-start align-items-center pe-3 pt-3 mt-2">
                       <img
                         src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava6-bg.webp"
