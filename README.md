@@ -25,54 +25,6 @@ cd imaginary-chat
 ```
 
 2. Install the dependencies:
-```
-npm install
-```
-
-3. Set up the OpenAI API key:
-
-Create a .env file in the root of the project directory, and add your OpenAI API key:
-```
-REACT_APP_OPENAI_API_KEY=your_api_key_here
-```
-
-## Running the application
-
-    Start the development server:
-
-```
-npm run server
-```
-
-markdown
-
-# Imaginary Chat Application
-
-This is an Imaginary Chat Application built using React and OpenAI API. It allows you to have a chat with any person you can imagine. You can create new conversations with personalities of your choice, and the application uses OpenAI API to generate the responses, simulating a chat experience with that person.
-
-## Features
-
-- Chat with any person you can imagine
-- Dynamic contact list with the ability to add new conversations
-- Uses OpenAI API to generate realistic chat responses
-- Responsive design for various screen sizes
-
-## Prerequisites
-
-Before running this application, ensure you have [Node.js](https://nodejs.org/) installed on your system.
-
-## Installation
-
-Follow these steps to set up the Imaginary Chat Application:
-
-1. Clone the repository:
-
-```
-git clone https://github.com/yourusername/imaginary-chat.git
-cd imaginary-chat
-```
-
-2. Install the dependencies:
 
 ```
 npm install
