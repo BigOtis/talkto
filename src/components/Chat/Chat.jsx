@@ -6,7 +6,6 @@ import {
   MDBCard,
   MDBCardBody,
   MDBIcon,
-  MDBTypography,
   MDBInputGroup,
 } from "mdb-react-ui-kit";
 import Message from "./Message";
@@ -39,7 +38,6 @@ const Chat = () => {
     const [currentContact, setCurrentContact] = useState(localStorage.getItem("currentContact"));
     const [messageCount, setMessageCount] = useState(0);
     const [isFetchingResponse, setIsFetchingResponse] = useState(false);
-    const [showContacts, setShowContacts] = useState(false);
     const [messageText, setMessageText] = useState("");
 
     // update local storage every time contacts or currentContact changes
@@ -93,25 +91,38 @@ const Chat = () => {
 
       setIsFetchingResponse(true);
 
-      // Call the chat API to get a response from the assistant
-      const response = await fetchChatResponse(contacts[currentContact], contacts[currentContact].messages);
-
-      if (response) {
+      try {
+        // Call the chat API to get a response from the assistant
+        const response = await Promise.race([
+          fetchChatResponse(contacts[currentContact], contacts[currentContact].messages),
+          timeout(10000),
+        ]);
+    
         // Add the response to the messages array
         contacts[currentContact].messages.push({
           message: response,
           time: getDateTimeString(),
           isUser: false,
         });
-
+    
         setContacts([...contacts]);
         setMessageCount(messageCount + 1);
         setIsFetchingResponse(false);
-
-      } else {
-        console.error("Error fetching chat response");
+    
+      } catch (error) {
+        console.error("Error fetching chat response", error);
+        setIsFetchingResponse(false);
+    
+        // Show an error message to the user
+        contacts[currentContact].messages.push({
+          message: "Sorry, I've been a little overloaded with messages. I'm taking a short break. Chat with me again soon!",
+          time: getDateTimeString(),
+          isUser: false,
+        });
+        setContacts([...contacts]);
+        setMessageCount(messageCount + 1);
       }
-  };
+    };
 
   const renderLoadingIndicator = () => {
     if (isFetchingResponse) {
@@ -139,6 +150,12 @@ const Chat = () => {
       </div>
     );
   };
+
+  const timeout = (ms) => {
+    return new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Request timed out")), ms)
+    );
+  };  
 
     return (
       <MDBContainer fluid className="py-5" style={{ backgroundColor: "#91919B" }}>

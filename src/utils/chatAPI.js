@@ -16,7 +16,7 @@ const fetchChatResponse = async (contact, messages) => {
       return data.message;
     } catch (error) {
       console.error("Error fetching chat response:", error);
-      return null;
+      return "Sorry, I've been having too many chats lately and need a break. Please try again later.";
     }
   };
   
