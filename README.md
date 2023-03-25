@@ -39,7 +39,7 @@ API_KEY_VALUE=your_api_key_here
 
 Replace your_api_key_here with your actual OpenAI API key.
 Running the application
-
+```
 5. Start the development server:
 
 
