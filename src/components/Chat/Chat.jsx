@@ -12,14 +12,12 @@ import {
 import Message from "./Message";
 import Contact from "./Contact";
 import { useState, useEffect, useRef } from "react";
-import { FixedSizeList as List } from "react-window";
-import AutoSizer from "react-virtualized-auto-sizer";
 import fetchChatResponse from "../../utils/chatAPI";
-import { Spinner } from "react-bootstrap";
+import { Spinner, Button } from "react-bootstrap";
+import { ArrowRight } from "react-bootstrap-icons";
 
 const Chat = () => {  
 
-    const me = { avatar: "https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava1-bg.webp", name: "me" }
     const toni = { avatar: "https://images.gr-assets.com/authors/1494211316p8/3534.jpg", name: "Toni Morrison", messages: [{"message": "There is no time for despair, no place for self-pity, no need for silence, no room for fear. We speak, we write, we do language. That is how civilizations heal.", "time": "Now", "isUser": false}] }
     const messagesEndRef = useRef(null);
 
@@ -33,9 +31,12 @@ const Chat = () => {
 
     // load contacts and currentContact from local storage
     const [contacts, setContacts] = useState(JSON.parse(localStorage.getItem("contacts")));
+    const sortedContacts = contacts.slice().sort((a, b) => new Date(b.messages[b.messages.length - 1].time) - new Date(a.messages[a.messages.length - 1].time));
     const [currentContact, setCurrentContact] = useState(localStorage.getItem("currentContact"));
     const [messageCount, setMessageCount] = useState(0);
     const [isFetchingResponse, setIsFetchingResponse] = useState(false);
+    const [showContacts, setShowContacts] = useState(false);
+    const [messageText, setMessageText] = useState("");
 
     // update local storage every time contacts or currentContact changes
     useEffect(() => {
@@ -44,8 +45,10 @@ const Chat = () => {
       scrollToBottom();
     }, [contacts, currentContact, messageCount]);
     
-    const handleContactClick = (index) => {
-      setCurrentContact(index);
+    const handleContactClick = (sortedIndex) => {
+      const selectedContact = sortedContacts[sortedIndex];
+      const originalIndex = contacts.findIndex(contact => contact === selectedContact);
+      setCurrentContact(originalIndex);
     };
 
     const handleNewConversation = async (event) => {
@@ -135,9 +138,13 @@ const Chat = () => {
     }
     return null;
   };
+
+  const toggleContacts = () => {
+    setShowContacts(!showContacts);
+  };
     
     return (
-      <MDBContainer fluid className="py-5" style={{ backgroundColor: "#CDC4F9" }}>
+      <MDBContainer fluid className="py-5" style={{ backgroundColor: "#91919B" }}>
         <MDBRow>
           <MDBCol md="12">
             <MDBCard id="chat3" style={{ borderRadius: "15px" }}>
@@ -161,31 +168,39 @@ const Chat = () => {
                       </MDBInputGroup>
 
                       <MDBTypography listUnStyled className="mb-0">
-                        {contacts.map((person, index) => (
-                          <Contact
-                            key={index}
-                            index={index}
-                            person={person}
-                            handleContactClick={handleContactClick}
-                          />
-                        ))}
+                      {sortedContacts.map((person, index) => (
+                        <Contact
+                          key={index}
+                          index={index}
+                          person={person}
+                          handleContactClick={handleContactClick}
+                        />
+                      ))}
                       </MDBTypography>
                     </div>
                   </MDBCol>
                   <MDBCol md="6" lg="7" xl="8">
-                  <div className="messages-section" style={{ width: "100%", height: "calc(100vh - 200px)" }}>
-                    <AutoSizer>
-                      {({ width, height }) => (
-                        <List
-                          width={width} // Adjust the width as needed
-                          height={height} // Adjust the height as needed
-                          itemCount={ contacts[currentContact].messages.length}
-                          itemSize={100} // Adjust the height of each message row as needed
-                          children={msgRenderer}
-                        />     
-                      )}     
-                      </AutoSizer>
+                    <div
+                      className="messages-section"
+                      style={{
+                        width: "100%",
+                        height: "calc(100vh - 200px)",
+                        overflowY: "auto",
+                        paddingRight: "1rem",
+                      }}
+                    >
+                      {contacts[currentContact].messages.map((msg, index) => (
+                        <Message
+                          key={index}
+                          message={msg.message}
+                          person={contacts[currentContact]}
+                          isUser={msg.isUser}
+                          time={msg.time}
+                        />
+                      ))}
+                      <div ref={messagesEndRef} />
                     </div>
+
                     {renderLoadingIndicator()}
                     <div className="text-muted d-flex justify-content-start align-items-center pe-3 pt-3 mt-2">
                       <img
@@ -193,19 +208,33 @@ const Chat = () => {
                         alt="avatar 3"
                         style={{ width: "40px", height: "100%" }}
                       />
-                      <input
-                        type="text"
-                        className="form-control form-control-lg"
-                        id="exampleFormControlInput2"
-                        placeholder="Type message"
-                        maxLength="200"
-                        disabled={isFetchingResponse}
-                        onKeyDown={(event) => {
-                          if (!isFetchingResponse && event.keyCode === 13) {
-                            handleSendMessage(event);
-                          }
-                        }}
-                      />
+                    <input
+                      type="text"
+                      className="form-control form-control-lg"
+                      id="exampleFormControlInput2"
+                      placeholder="Type message"
+                      maxLength="200"
+                      disabled={isFetchingResponse}
+                      value={messageText}
+                      onChange={(event) => setMessageText(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (!isFetchingResponse && event.keyCode === 13) {
+                          handleSendMessage({ target: { value: messageText } });
+                          setMessageText("");
+                        }
+                      }}
+                    />
+                    <Button variant="dark"
+                      className="btn btn-primary ms-2"
+                      onClick={(event) => {
+                        if (!isFetchingResponse) {
+                          handleSendMessage({ target: { value: messageText } });
+                          setMessageText("");
+                        }
+                      }}
+                    >
+                        <ArrowRight size={24} />
+                      </Button>
                       <a className="ms-1 text-muted" href="#!">
                     <MDBIcon fas icon="paperclip" />
                   </a>

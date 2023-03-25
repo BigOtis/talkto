@@ -18,7 +18,7 @@ const Contact = ({ person, handleContactClick, index }) => {
         >
           <div className="d-flex flex-row">
             <div>
-               <Image src={person.avatar} roundedCircle style={{width: '60px', height: '60px', padding: '5px'}}/>
+               <Image src={person.avatar} roundedCircle style={{ width: "55px", height: "55px", padding: "1px", border: "1px solid #000", marginRight: "10px" }}/>
               <span className="badge bg-success badge-dot"></span>
             </div>
             <div className="pt-1">

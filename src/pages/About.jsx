@@ -5,14 +5,14 @@ import React from 'react';
 const About = () => {
   // page content
   const pageTitle = 'About'
-  const pageDescription = 'A free essay writer powered by OpenAI.'
-  const aboutText = `Welcome to OtisFuse, a revolutionary new tool that helps students like you get a head start on your writing assignments! Our service uses advanced artificial intelligence to take an essay prompt and title, and generate a simple essay that can serve as the foundation for your own work.
+  const pageDescription = 'About Talk To AI'
+  const aboutText = `Welcome to Talk To AI, where you can experience parody conversations with any person known to the internet. Our platform uses advanced AI technology to emulate the personalities of famous individuals through text messaging. Engage in entertaining and amusing discussions with the AI-generated versions of your favorite celebrities, historical figures, and public personalities.
 
-  Whether you're struggling to come up with ideas for an essay, or just looking for a way to streamline your writing process, otisfuse.com has you covered. Simply enter your prompt and title, and our AI will do the rest, providing you with a basic essay that you can use as a launching pad for your own ideas.
+  Legal Disclaimer:
   
-  But here's the best part: using otisfuse.com can save you time and effort in the early stages of the writing process. No more staring at a blank page, wondering where to begin. With our service, you'll have a solid foundation to build upon, freeing you up to focus on the creative and analytical aspects of your writing.
+  Please note that the characters represented on our website are purely fictional and for parody and humor purposes only. They do not represent the real people they resemble, nor are they endorsed or affiliated with them in any way. Talk To AI is not responsible for any misunderstandings or misinterpretations that may arise from the use of our platform. Our intent is solely to provide entertainment and enjoyment to our users. By using Talk To AI, you acknowledge and agree to these terms.
   
-  So if you're a student looking to save time and stress on your writing assignments, give otisfuse.com a try today!`
+  Enjoy your conversations and have a great time exploring the amusing world of AI-generated personalities!`
 
   return (
     <div>

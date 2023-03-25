@@ -9,6 +9,8 @@ import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
 import Privacy from "./pages/Privacy";
 import About from "./pages/About";
+import './custom.css';
+
 
 const App = () => {
   return (
