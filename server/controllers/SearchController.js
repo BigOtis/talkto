@@ -15,7 +15,7 @@ exports.searchForImageUrl = async (req, res) => {
     imageUrl = await searchGoogleImages(searchTerm);
     // if the image url is null, return an error
     if(!imageUrl){
-        res.json({ imageUrl: "An error occurred searching for an image. Please try again later." });
+        res.json({ imageUrl: "unknown.png" });
         return;
     }
     res.json({ imageUrl });
