@@ -13,8 +13,12 @@ import Message from "./Message";
 import Contact from "./Contact";
 import { useState, useEffect, useRef } from "react";
 import fetchChatResponse from "../../utils/chatAPI";
-import { Spinner, Button } from "react-bootstrap";
+import { Spinner, Button, Image } from "react-bootstrap";
 import { ArrowRight } from "react-bootstrap-icons";
+import userAvatar from "../../img/avatar2.png";
+import { FixedSizeList as List } from "react-window";
+import AutoSizer from "react-virtualized-auto-sizer";
+
 
 const Chat = () => {  
 
@@ -59,30 +63,13 @@ const Chat = () => {
           const newContact = {
             avatar: avatarUrl || "https://via.placeholder.com/150",
             name: name,
-            messages: [{"message": "Hello...", "time": "Now", "isUser": false}],
+            messages: [{"message": `Hello... you've reached ${name}.`, "time": "Now", "isUser": false}],
           };
           setContacts([...contacts, newContact]);
           setCurrentContact(contacts.length);
           event.target.value = "";
         }
       }
-    };
-
-    const msgRenderer = ({ index, style }) => {
-      const msg = contacts[currentContact].messages[index];
-      // if this is the last message in the messages list, add a ref to it so we can scroll to it
-      if (index === contacts[currentContact].messages.length - 1) {
-        return (
-          <div key={index} style={{ ...style }} ref={messagesEndRef}>
-            <Message key={index} message={msg.message} person={contacts[currentContact]} isUser={msg.isUser} time={msg.time} />
-          </div>
-        );
-      }
-      return (
-        <div key={index} style={{ ...style }}>
-          <Message key={index} message={msg.message} person={contacts[currentContact]} isUser={msg.isUser} time={msg.time} />
-        </div>
-      );
     };
 
     const scrollToBottom = () => {
@@ -139,10 +126,20 @@ const Chat = () => {
     return null;
   };
 
-  const toggleContacts = () => {
-    setShowContacts(!showContacts);
+  const contactRenderer = ({ index, style }) => {
+    const person = sortedContacts[index];
+    return (
+      <div key={index} style={{ ...style }}>
+        <Contact
+          key={index}
+          index={index}
+          person={person}
+          handleContactClick={handleContactClick}
+        />
+      </div>
+    );
   };
-    
+
     return (
       <MDBContainer fluid className="py-5" style={{ backgroundColor: "#91919B" }}>
         <MDBRow>
@@ -166,17 +163,19 @@ const Chat = () => {
                           <MDBIcon fas icon="search" />
                         </span>
                       </MDBInputGroup>
-
-                      <MDBTypography listUnStyled className="mb-0">
-                      {sortedContacts.map((person, index) => (
-                        <Contact
-                          key={index}
-                          index={index}
-                          person={person}
-                          handleContactClick={handleContactClick}
-                        />
-                      ))}
-                      </MDBTypography>
+                      <div className="contacts-section" style={{ height: "calc(100vh - 300px)" }}>
+                      <AutoSizer>
+                        {({ width, height }) => (
+                          <List
+                            width={width}
+                            height={height}
+                            itemCount={sortedContacts.length}
+                            itemSize={100} // Adjust the height of each contact row as needed
+                            children={contactRenderer}
+                          />
+                        )}
+                      </AutoSizer>
+                    </div>
                     </div>
                   </MDBCol>
                   <MDBCol md="6" lg="7" xl="8">
@@ -203,11 +202,11 @@ const Chat = () => {
 
                     {renderLoadingIndicator()}
                     <div className="text-muted d-flex justify-content-start align-items-center pe-3 pt-3 mt-2">
-                      <img
-                        src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava6-bg.webp"
-                        alt="avatar 3"
-                        style={{ width: "40px", height: "100%" }}
-                      />
+                    <Image
+                      src={userAvatar}
+                      roundedCircle
+                      style={{ width: "50px", height: "50px", padding: "2px", border: "1px solid #000",  marginRight: "5px" }}
+                    />
                     <input
                       type="text"
                       className="form-control form-control-lg"

@@ -1,6 +1,6 @@
 import React from "react";
 import { Image } from "react-bootstrap";
-import userAvatar from "../../img/avatar2.jpg";
+import userAvatar from "../../img/avatar2.png";
 
 const Message = ({ message, person, time, isUser }) => {
   if (isUser) {

@@ -34,7 +34,7 @@ const generateChatResponse = async (contact, messages) => {
   // Add a system message for the assistant to act like the contact
   formattedMessages.unshift({
     role: "system",
-    content:` Do not mention that you are an AI language model. The person you are chatting with is a fan of ${contact.name}. Respond as if you are ${contact.name} through short text message. Use information you know about ${contact.name} to make your responses seem more realistic.`,
+    content:`Don't say you're an AI language model. The person you are chatting with is a fan of ${contact.name}. Respond as if you are ${contact.name} through short text message. Use info you know about ${contact.name} to make your responses realistic. Don't break character`,
   });
 
   const completion = await openai.createChatCompletion({
