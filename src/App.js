@@ -7,7 +7,6 @@ import Layout from "./layout/Layout";
 // pages
 import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
-import Privacy from "./pages/Privacy";
 import About from "./pages/About";
 import './custom.css';
 
@@ -19,7 +18,6 @@ const App = () => {
         <Routes>
         <Route path="/" element={<Home />} exact />
           <Route path="/about" element={<About />} />
-          <Route path='/privacy' element={<Privacy />} />
           <Route path='*' element={<NotFound />} />
         </Routes>
       </Container>
