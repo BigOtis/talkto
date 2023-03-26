@@ -1,10 +1,5 @@
 import React from "react";
 import {
-  MDBContainer,
-  MDBRow,
-  MDBCol,
-  MDBCard,
-  MDBCardBody,
   MDBIcon,
   MDBInputGroup,
 } from "mdb-react-ui-kit";
@@ -18,6 +13,7 @@ import userAvatar from "../../img/avatar2.png";
 import { FixedSizeList as List } from "react-window";
 import AutoSizer from "react-virtualized-auto-sizer";
 import MediaQuery from "react-responsive";
+import "./chat.css";
 
 const Chat = () => {
 
@@ -39,7 +35,6 @@ const Chat = () => {
     const [messageCount, setMessageCount] = useState(0);
     const [isFetchingResponse, setIsFetchingResponse] = useState(false);
     const [messageText, setMessageText] = useState("");
-    const [isContactsCollapsed, setIsContactsCollapsed] = useState(true);
 
 
     // update local storage every time contacts or currentContact changes
@@ -160,11 +155,9 @@ const Chat = () => {
   };  
 
   return (
-    <Container fluid className="py-5" style={{ backgroundColor: "#91919B" }}>
+    <Container fluid className="py-5">
       <Row>
         <Col xs={12}>
-          <MDBCard id="chat3" style={{ borderRadius: "15px" }}>
-            <MDBCardBody>
               <Row>
                 <MediaQuery maxWidth={767}>
                   {(matches) =>
@@ -175,7 +168,7 @@ const Chat = () => {
                           <div className="p-3">
                             <MDBInputGroup className="rounded mb-3">
                               <input
-                                className="form-control rounded"
+                                className="form-control rounded small-text-on-mobile"
                                 placeholder="New Conversation"
                                 type="search"
                                 onKeyDown={handleNewConversation}
@@ -243,7 +236,7 @@ const Chat = () => {
                             />
                             <input
                               type="text"
-                              className="form-control form-control-lg"
+                              className="form-control form-control-lg small-text-on-mobile"
                               id="exampleFormControlInput2"
                               placeholder="Type message"
                               maxLength="200"
@@ -416,8 +409,6 @@ const Chat = () => {
                 }
               </MediaQuery>
             </Row>
-          </MDBCardBody>
-        </MDBCard>
       </Col>
     </Row>
   </Container>
