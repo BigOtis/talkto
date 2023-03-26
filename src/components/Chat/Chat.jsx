@@ -12,14 +12,14 @@ import Message from "./Message";
 import Contact from "./Contact";
 import { useState, useEffect, useRef } from "react";
 import fetchChatResponse from "../../utils/chatAPI";
-import { Spinner, Button, Image } from "react-bootstrap";
+import { Spinner, Button, Image, Container, Row, Col } from "react-bootstrap";
 import { ArrowRight } from "react-bootstrap-icons";
 import userAvatar from "../../img/avatar2.png";
 import { FixedSizeList as List } from "react-window";
 import AutoSizer from "react-virtualized-auto-sizer";
+import MediaQuery from "react-responsive";
 
-
-const Chat = () => {  
+const Chat = () => {
 
     const toni = { avatar: "https://images.gr-assets.com/authors/1494211316p8/3534.jpg", name: "Toni Morrison", messages: [{"message": "There is no time for despair, no place for self-pity, no need for silence, no room for fear. We speak, we write, we do language. That is how civilizations heal.", "time": "Now", "isUser": false}] }
     const messagesEndRef = useRef(null);
@@ -39,6 +39,8 @@ const Chat = () => {
     const [messageCount, setMessageCount] = useState(0);
     const [isFetchingResponse, setIsFetchingResponse] = useState(false);
     const [messageText, setMessageText] = useState("");
+    const [isContactsCollapsed, setIsContactsCollapsed] = useState(true);
+
 
     // update local storage every time contacts or currentContact changes
     useEffect(() => {
@@ -157,119 +159,272 @@ const Chat = () => {
     );
   };  
 
-    return (
-      <MDBContainer fluid className="py-5" style={{ backgroundColor: "#91919B" }}>
-        <MDBRow>
-          <MDBCol md="12">
-            <MDBCard id="chat3" style={{ borderRadius: "15px" }}>
-              <MDBCardBody>
-                <MDBRow>
-                  <MDBCol md="6" lg="5" xl="4" className="mb-4 mb-md-0">
-                    <div className="p-3">
-                      <MDBInputGroup className="rounded mb-3">
-                        <input
-                          className="form-control rounded"
-                          placeholder="New Conversation"
-                          type="search"
-                          onKeyDown={handleNewConversation}
-                        />
-                        <span
-                          className="input-group-text border-0"
-                          id="search-addon"
+  return (
+    <Container fluid className="py-5" style={{ backgroundColor: "#91919B" }}>
+      <Row>
+        <Col xs={12}>
+          <MDBCard id="chat3" style={{ borderRadius: "15px" }}>
+            <MDBCardBody>
+              <Row>
+                <MediaQuery maxWidth={767}>
+                  {(matches) =>
+                    matches ? (
+                      // Mobile layout
+                      <>
+                        <Col xs={12} className="mb-4 mb-md-0">
+                          <div className="p-3">
+                            <MDBInputGroup className="rounded mb-3">
+                              <input
+                                className="form-control rounded"
+                                placeholder="New Conversation"
+                                type="search"
+                                onKeyDown={handleNewConversation}
+                              />
+                              <span
+                                className="input-group-text border-0"
+                                id="search-addon"
+                              >
+                                <MDBIcon fas icon="search" />
+                              </span>
+                            </MDBInputGroup>
+                            <div
+                              className="contacts-section"
+                              style={{ height: "calc(100vh - 300px)" }}
+                            >
+                              <AutoSizer>
+                                {({ width, height }) => (
+                                  <List
+                                    width={width}
+                                    height={height}
+                                    itemCount={sortedContacts.length}
+                                    itemSize={100}
+                                    children={contactRenderer}
+                                  />
+                                )}
+                              </AutoSizer>
+                            </div>
+                          </div>
+                        </Col>
+                        <Col xs={12}>
+                          <div
+                            className="messages-section"
+                            style={{
+                              width: "100%",
+                              height: "calc(100vh - 200px)",
+                              overflowY: "auto",
+                              paddingRight: "1rem",
+                            }}
+                          >
+                            {contacts[currentContact].messages.map(
+                              (msg, index) => (
+                                <Message
+                                  key={index}
+                                  message={msg.message}
+                                  person={contacts[currentContact]}
+                                  isUser={msg.isUser}
+                                  time={msg.time}
+                                />
+                              )
+                            )}
+                            <div ref={messagesEndRef} />
+                          </div>
+  
+                          {renderLoadingIndicator()}
+                          <div className="text-muted d-flex justify-content-start align-items-center pe-3 pt-3 mt-2">
+                            <Image
+                              src={userAvatar}
+                              roundedCircle
+                              style={{
+                                width: "50px",
+                                height: "50px",
+                                padding: "2px",
+                                border: "1px solid #000",
+                                marginRight: "5px",
+                              }}
+                            />
+                            <input
+                              type="text"
+                              className="form-control form-control-lg"
+                              id="exampleFormControlInput2"
+                              placeholder="Type message"
+                              maxLength="200"
+                              disabled={isFetchingResponse}
+                              value={messageText}
+                              onChange={(event) =>
+                                setMessageText(event.target.value)
+                              }
+                              onKeyDown={(event) => {
+                                if (
+                                  !isFetchingResponse &&
+                                  event.keyCode === 13
+                                ) {
+                                  handleSendMessage({
+                                    target: { value: messageText },
+                                  });
+                                  setMessageText("");
+                                }
+                              }}
+                            />
+                          <Button
+                            variant="dark"
+                            className="btn btn-primary ms-2"
+                            onClick={(event) => {
+                              if (!isFetchingResponse) {
+                                handleSendMessage({
+                                  target: { value: messageText },
+                                });
+                                setMessageText("");
+                              }
+                            }}
+                          >
+                            <ArrowRight size={24} />
+                          </Button>
+                          <a className="ms-1 text-muted" href="#!">
+                            <MDBIcon fas icon="paperclip" />
+                          </a>
+                          <a className="ms-3 text-muted" href="#!">
+                            <MDBIcon fas icon="smile" />
+                          </a>
+                          <a className="ms-3" href="#!">
+                            <MDBIcon fas icon="paper-plane" />
+                          </a>
+                        </div>
+                      </Col>
+                    </>
+                  ) : (
+                    // Desktop layout
+                    <>
+                      <Col md="6" lg="5" xl="4" className="mb-4 mb-md-0">
+                        <div className="p-3">
+                          <MDBInputGroup className="rounded mb-3">
+                            <input
+                              className="form-control rounded"
+                              placeholder="New Conversation"
+                              type="search"
+                              onKeyDown={handleNewConversation}
+                            />
+                            <span
+                              className="input-group-text border-0"
+                              id="search-addon"
+                            >
+                              <MDBIcon fas icon="search" />
+                            </span>
+                          </MDBInputGroup>
+                          <div
+                            className="contacts-section"
+                            style={{ height: "calc(100vh - 300px)" }}
+                          >
+                            <AutoSizer>
+                              {({ width, height }) => (
+                                <List
+                                  width={width}
+                                  height={height}
+                                  itemCount={sortedContacts.length}
+                                  itemSize={100}
+                                  children={contactRenderer}
+                                />
+                              )}
+                            </AutoSizer>
+                          </div>
+                        </div>
+                      </Col>
+                      <Col md="6" lg="7" xl="8">
+                        <div
+                          className="messages-section"
+                          style={{
+                            width: "100%",
+                            height: "calc(100vh - 200px)",
+                            overflowY: "auto",
+                            paddingRight: "1rem",
+                          }}
                         >
-                          <MDBIcon fas icon="search" />
-                        </span>
-                      </MDBInputGroup>
-                      <div className="contacts-section" style={{ height: "calc(100vh - 300px)" }}>
-                      <AutoSizer>
-                        {({ width, height }) => (
-                          <List
-                            width={width}
-                            height={height}
-                            itemCount={sortedContacts.length}
-                            itemSize={100} // Adjust the height of each contact row as needed
-                            children={contactRenderer}
+                          {contacts[currentContact].messages.map(
+                            (msg, index) => (
+                              <Message
+                                key={index}
+                                message={msg.message}
+                                person={contacts[currentContact]}
+                                isUser={msg.isUser}
+                                time={msg.time}
+                              />
+                            )
+                          )}
+                          <div ref={messagesEndRef} />
+                        </div>
+                        {renderLoadingIndicator()}
+                        <div className="text-muted d-flex justify-content-start align-items-center pe-3 pt-3 mt-2">
+                          <Image
+                            src={userAvatar}
+                            roundedCircle
+                            style={{
+                              width: "50px",
+                              height: "50px",
+                              padding: "2px",
+                              border: "1px solid #000",
+                              marginRight: "5px",
+                            }}
                           />
-                        )}
-                      </AutoSizer>
-                    </div>
-                    </div>
-                  </MDBCol>
-                  <MDBCol md="6" lg="7" xl="8">
-                    <div
-                      className="messages-section"
-                      style={{
-                        width: "100%",
-                        height: "calc(100vh - 200px)",
-                        overflowY: "auto",
-                        paddingRight: "1rem",
-                      }}
-                    >
-                      {contacts[currentContact].messages.map((msg, index) => (
-                        <Message
-                          key={index}
-                          message={msg.message}
-                          person={contacts[currentContact]}
-                          isUser={msg.isUser}
-                          time={msg.time}
-                        />
-                      ))}
-                      <div ref={messagesEndRef} />
-                    </div>
-
-                    {renderLoadingIndicator()}
-                    <div className="text-muted d-flex justify-content-start align-items-center pe-3 pt-3 mt-2">
-                    <Image
-                      src={userAvatar}
-                      roundedCircle
-                      style={{ width: "50px", height: "50px", padding: "2px", border: "1px solid #000",  marginRight: "5px" }}
-                    />
-                    <input
-                      type="text"
-                      className="form-control form-control-lg"
-                      id="exampleFormControlInput2"
-                      placeholder="Type message"
-                      maxLength="200"
-                      disabled={isFetchingResponse}
-                      value={messageText}
-                      onChange={(event) => setMessageText(event.target.value)}
-                      onKeyDown={(event) => {
-                        if (!isFetchingResponse && event.keyCode === 13) {
-                          handleSendMessage({ target: { value: messageText } });
-                          setMessageText("");
-                        }
-                      }}
-                    />
-                    <Button variant="dark"
-                      className="btn btn-primary ms-2"
-                      onClick={(event) => {
-                        if (!isFetchingResponse) {
-                          handleSendMessage({ target: { value: messageText } });
-                          setMessageText("");
-                        }
-                      }}
-                    >
-                        <ArrowRight size={24} />
-                      </Button>
-                      <a className="ms-1 text-muted" href="#!">
-                    <MDBIcon fas icon="paperclip" />
-                  </a>
-                  <a className="ms-3 text-muted" href="#!">
-                    <MDBIcon fas icon="smile" />
-                  </a>
-                  <a className="ms-3" href="#!">
-                    <MDBIcon fas icon="paper-plane" />
-                  </a>
-                </div>
-                  </MDBCol>
-                </MDBRow>
-              </MDBCardBody>
-            </MDBCard>
-          </MDBCol>
-        </MDBRow>
-      </MDBContainer>
-    );
-  }
+                          <input
+                            type="text"
+                            className="form-control form-control-lg"
+                            id="exampleFormControlInput2"
+                            placeholder="Type message"
+                            maxLength="200"
+                            disabled={isFetchingResponse}
+                            value={messageText}
+                            onChange={(event) =>
+                              setMessageText(event.target.value)
+                            }
+                            onKeyDown={(event) => {
+                              if (
+                                !isFetchingResponse &&
+                                event.keyCode === 13
+                              ) {
+                                handleSendMessage({
+                                  target: { value: messageText },
+                                });
+                                setMessageText("");
+                              }
+                            }}
+                          />
+                          <Button
+                            variant="dark"
+                            className="btn btn-primary ms-2"
+                            onClick={(event) => {
+                              if (!isFetchingResponse) {
+                                handleSendMessage({
+                                  target: { value: messageText },
+                                });
+                                setMessageText("");
+                              }
+                            }}
+                          >
+                            <ArrowRight size={24} />
+                          </Button>
+                          <a className="ms-1 text-muted" href="#!">
+                            <MDBIcon fas icon="paperclip" />
+                          </a>
+                          <a className="ms-3 text-muted" href="#!">
+                            <MDBIcon fas icon="smile" />
+                          </a>
+                          <a className="ms-3" href="#!">
+                            <MDBIcon fas icon="paper-plane" />
+                          </a>
+                        </div>
+                      </Col>
+                    </>
+                  )
+                }
+              </MediaQuery>
+            </Row>
+          </MDBCardBody>
+        </MDBCard>
+      </Col>
+    </Row>
+  </Container>
+ );
+}
+ 
 
 const fetchImageUrl = async (searchTerm) => {
   try {
