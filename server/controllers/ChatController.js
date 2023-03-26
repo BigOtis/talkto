@@ -1,4 +1,5 @@
 const { Configuration, OpenAIApi } = require("openai");
+const { saveStatsToDB } = require("../util/Mongo"); 
 
 const configuration = new Configuration({
   apiKey: process.env.API_KEY_VALUE,
@@ -34,7 +35,7 @@ const generateChatResponse = async (contact, messages) => {
   // Add a system message for the assistant to act like the contact
   formattedMessages.unshift({
     role: "system",
-    content:`Don't say you're an AI language model. The person you are chatting with is a fan of ${contact.name}. Respond as if you are ${contact.name} through short text message. Use info you know about ${contact.name} to make your responses realistic. Don't break character`,
+    content: `Remember, you're impersonating ${contact.name} in a playful, fictional manner. The person you are chatting with is a fan of ${contact.name}. Keep your responses short and in character, drawing upon the knowledge you have about ${contact.name} to make the conversation engaging and realistic. Maintain the persona throughout the conversation.`,
   });
 
   const completion = await openai.createChatCompletion({
@@ -53,6 +54,13 @@ exports.getChatMessage = async (req, res) => {
 
     // Return the resulting text to the client
     res.json({ message: result });
+
+    // Now that we have a response, save the stats to the database
+    try{
+      saveStatsToDB(contact.name, getClientIp(req));
+    } catch (e) {
+      console.error("Error saving stats to database:", e);
+    }
   } catch (e) {
     res.json({
       message:
@@ -61,3 +69,10 @@ exports.getChatMessage = async (req, res) => {
     });
   }
 };
+
+// Function to parse client ip address from request
+const getClientIp = (req) => {
+  return req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+};
+
+
