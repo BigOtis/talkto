@@ -189,13 +189,13 @@ const Chat = () => {
                             </MDBInputGroup>
                             <div
                               className="contacts-section"
-                              style={{ height: "calc(100vh - 300px)" }}
+                              style={{ height: "300px" }}
                             >
                               <AutoSizer>
-                                {({ width, height }) => (
+                                {({ width }) => (
                                   <List
                                     width={width}
-                                    height={height}
+                                    height={300}
                                     itemCount={sortedContacts.length}
                                     itemSize={100}
                                     children={contactRenderer}
@@ -204,8 +204,7 @@ const Chat = () => {
                               </AutoSizer>
                             </div>
                           </div>
-                        </Col>
-                        <Col xs={12}>
+                          <hr></hr>
                           <div
                             className="messages-section"
                             style={{
