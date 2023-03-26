@@ -155,7 +155,7 @@ const Chat = () => {
   };  
 
   return (
-    <Container fluid className="py-5">
+    <Container fluid className="py-5"  style={{ border: '1px solid gray' }}>
       <Row>
         <Col xs={12}>
               <Row>
@@ -165,7 +165,7 @@ const Chat = () => {
                       // Mobile layout
                       <>
                         <Col xs={12} className="mb-4 mb-md-0">
-                          <div className="p-3">
+                        <div className="p-3">
                             <MDBInputGroup className="rounded mb-3">
                               <input
                                 className="form-control rounded small-text-on-mobile"
