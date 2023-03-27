@@ -13,11 +13,13 @@ import userAvatar from "../../img/avatar2.png";
 import { FixedSizeList as List } from "react-window";
 import AutoSizer from "react-virtualized-auto-sizer";
 import MediaQuery from "react-responsive";
+import { useParams } from "react-router-dom";
 import "./chat.css";
 
 const Chat = () => {
+    let { name } = useParams();
 
-    const toni = { avatar: "https://th.bing.com/th/id/OIG.SH7.u10w3N.sMfZ.6X8t?pid=ImgGn", name: "OtisFuse AI Helper", messages: [{"message": "Welcome to OtisFuse AI Chat, where you can talk to any character you can imagine. Just type any name you want to chat with in the new conversation area to create a new character to chat with. Let me know if you have any questions or if you want me to suggest some famous characters for you to chat with.", "time": "Now", "isUser": false}] }
+    const toni = { avatar: "https://th.bing.com/th/id/OIG.SH7.u10w3N.sMfZ.6X8t?pid=ImgGn", name: "OtisFuse AI Helper", messages: [{"message": "Welcome to OtisFuse AI Chat, where you can talk to any character you can imagine. Just type any name you want to chat with in the new conversation area to create a new character to chat with. Let me know if you have any questions or if you want me to suggest some famous characters for you to chat with. Remember, all conversations are purely fictional in nature.", "time": "Now", "isUser": false}] }
     const messagesEndRef = useRef(null);
 
     // if local storage is undefined, initialize it
@@ -43,6 +45,20 @@ const Chat = () => {
       localStorage.setItem("currentContact", currentContact);
       scrollToBottom();
     }, [contacts, currentContact, messageCount]);
+
+    useEffect(() => {
+      // If the name parameter is present, create a new contact with the given name
+      if (name) {
+        // replace any underscores in the name with blanks
+        name = name.replace(/_/g, " ");
+        const existingContactIndex = contacts.findIndex((contact) => contact.name.toLowerCase() === name.toLowerCase());
+        if (existingContactIndex === -1) {
+          handleNewConversation({ keyCode: 13, target: { value: name } });
+        } else {
+          setCurrentContact(existingContactIndex);
+        }
+      }
+    }, [name]);
     
     const handleContactClick = (sortedIndex) => {
       const selectedContact = sortedContacts[sortedIndex];

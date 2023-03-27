@@ -18,6 +18,7 @@ const App = () => {
         <Routes>
         <Route path="/" element={<Home />} exact />
           <Route path="/about" element={<About />} />
+          <Route path="/chat/:name" element={<Home />} />
           <Route path='*' element={<NotFound />} />
         </Routes>
       </Container>
