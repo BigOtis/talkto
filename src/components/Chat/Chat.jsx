@@ -17,7 +17,7 @@ import "./chat.css";
 
 const Chat = () => {
 
-    const toni = { avatar: "https://images.gr-assets.com/authors/1494211316p8/3534.jpg", name: "Toni Morrison", messages: [{"message": "There is no time for despair, no place for self-pity, no need for silence, no room for fear. We speak, we write, we do language. That is how civilizations heal.", "time": "Now", "isUser": false}] }
+    const toni = { avatar: "https://th.bing.com/th/id/OIG.SH7.u10w3N.sMfZ.6X8t?pid=ImgGn", name: "OtisFuse AI Helper", messages: [{"message": "Welcome to OtisFuse AI Chat, where you can talk to any character you can imagine. Just type any name you want to chat with in the new conversation area to create a new character to chat with. Let me know if you have any questions or if you want me to suggest some famous characters for you to chat with.", "time": "Now", "isUser": false}] }
     const messagesEndRef = useRef(null);
 
     // if local storage is undefined, initialize it
@@ -169,7 +169,7 @@ const Chat = () => {
                             <MDBInputGroup className="rounded mb-3">
                               <input
                                 className="form-control rounded small-text-on-mobile"
-                                placeholder="New Conversation"
+                                placeholder="Type any name to start a conversation..."
                                 type="search"
                                 onKeyDown={handleNewConversation}
                               />
@@ -206,7 +206,7 @@ const Chat = () => {
                               overflowY: "auto",
                               paddingRight: "1rem",
                             }}
-                          >
+                        >
                             {contacts[currentContact].messages.map(
                               (msg, index) => (
                                 <Message
@@ -291,7 +291,7 @@ const Chat = () => {
                           <MDBInputGroup className="rounded mb-3">
                             <input
                               className="form-control rounded"
-                              placeholder="New Conversation"
+                              placeholder="Type any name to start..."
                               type="search"
                               onKeyDown={handleNewConversation}
                             />
@@ -321,28 +321,28 @@ const Chat = () => {
                         </div>
                       </Col>
                       <Col md="6" lg="7" xl="8">
-                        <div
-                          className="messages-section"
-                          style={{
-                            width: "100%",
-                            height: "calc(100vh - 200px)",
-                            overflowY: "auto",
+                      <div
+  className="messages-section"
+  style={{
+    width: "100%",
+    height: "calc(100vh - 200px)",
+    overflowY: "auto",
                             paddingRight: "1rem",
-                          }}
-                        >
+  }}
+>
                           {contacts[currentContact].messages.map(
                             (msg, index) => (
-                              <Message
-                                key={index}
-                                message={msg.message}
-                                person={contacts[currentContact]}
-                                isUser={msg.isUser}
-                                time={msg.time}
-                              />
+      <Message
+        key={index}
+        message={msg.message}
+        person={contacts[currentContact]}
+        isUser={msg.isUser}
+        time={msg.time}
+      />
                             )
                           )}
-                          <div ref={messagesEndRef} />
-                        </div>
+  <div ref={messagesEndRef} />
+</div>
                         {renderLoadingIndicator()}
                         <div className="text-muted d-flex justify-content-start align-items-center pe-3 pt-3 mt-2">
                           <Image
