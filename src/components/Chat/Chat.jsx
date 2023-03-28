@@ -29,6 +29,9 @@ const Chat = () => {
     if (localStorage.getItem("currentContact") === null) {
         localStorage.setItem("currentContact", 0);
     }
+    if (localStorage.getItem("deletedContacts") === null) {
+      localStorage.setItem("deletedContacts", JSON.stringify([]));
+    } 
 
     // load contacts and currentContact from local storage
     const [contacts, setContacts] = useState(JSON.parse(localStorage.getItem("contacts")));
@@ -40,24 +43,24 @@ const Chat = () => {
 
 
     // update local storage every time contacts or currentContact changes
-    useEffect(() => {
-      localStorage.setItem("contacts", JSON.stringify(contacts));
-      localStorage.setItem("currentContact", currentContact);
-      scrollToBottom();
+useEffect(() => {
+  localStorage.setItem("contacts", JSON.stringify(contacts));
+  localStorage.setItem("currentContact", currentContact);
+  scrollToBottom();
     }, [contacts, currentContact, messageCount]);
 
     useEffect(() => {
       // If the name parameter is present, create a new contact with the given name
-      if (name) {
-        // replace any underscores in the name with blanks
+  if (name) {
+    // replace any underscores in the name with blanks
         name = name.replace(/_/g, " ");
         const existingContactIndex = contacts.findIndex((contact) => contact.name.toLowerCase() === name.toLowerCase());
-        if (existingContactIndex === -1) {
+    if (existingContactIndex === -1) {
           handleNewConversation({ keyCode: 13, target: { value: name } });
         } else {
-          setCurrentContact(existingContactIndex);
-        }
-      }
+      setCurrentContact(existingContactIndex);
+    }
+  }
     }, [name]);
     
     const handleContactClick = (sortedIndex) => {
@@ -66,22 +69,54 @@ const Chat = () => {
       setCurrentContact(originalIndex);
     };
 
+    const handleDeleteContact = (index) => {
+      if (contacts[index].name === "OtisFuse AI Helper") {
+        // If the contact is the default contact, do nothing
+        return;
+      }    
+      const newContacts = [...contacts];
+      const deletedContact = newContacts.splice(index, 1)[0];
+      setContacts(newContacts);
+      localStorage.setItem("contacts", JSON.stringify(newContacts));
+    
+      // Move deleted contact to deletedContacts array
+      const deletedContacts = JSON.parse(localStorage.getItem("deletedContacts"));
+      localStorage.setItem("deletedContacts", JSON.stringify([...deletedContacts, deletedContact]));
+    
+      if (index === currentContact) {
+        setCurrentContact(0);
+        localStorage.setItem("currentContact", 0);
+      } else if (index < currentContact) {
+        setCurrentContact(currentContact - 1);
+        localStorage.setItem("currentContact", currentContact - 1);
+      }
+    };
+    
     const handleNewConversation = async (event) => {
       if (event.keyCode === 13) {
         const name = event.target.value.trim();
         if (name) {
           const avatarUrl = await fetchImageUrl(name);
-          const newContact = {
-            avatar: avatarUrl || "https://via.placeholder.com/150",
-            name: name,
-            messages: [{"message": `Hello... you've reached ${name}.`, "time": "Now", "isUser": false}],
-          };
+          const deletedContacts = JSON.parse(localStorage.getItem("deletedContacts")) || [];
+          const existingContact = deletedContacts.find(c => c.name === name);
+          let newContact = null;
+          if (existingContact) {
+            newContact = existingContact;
+            deletedContacts.splice(deletedContacts.indexOf(existingContact), 1);
+            localStorage.setItem("deletedContacts", JSON.stringify(deletedContacts));
+          } else {
+            newContact = {
+              avatar: avatarUrl || "https://via.placeholder.com/150",
+              name: name,
+              messages: [{"message": `Hello... you've reached ${name}.`, "time": "Now", "isUser": false}],
+            };
+          }
           setContacts([...contacts, newContact]);
           setCurrentContact(contacts.length);
           event.target.value = "";
         }
       }
-    };
+    };     
 
     const scrollToBottom = () => {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -159,6 +194,9 @@ const Chat = () => {
           index={index}
           person={person}
           handleContactClick={handleContactClick}
+          handleDeleteContact={handleDeleteContact}
+          currentContact={currentContact}
+          contacts={contacts}
         />
       </div>
     );
@@ -170,267 +208,267 @@ const Chat = () => {
     );
   };  
 
+  // Desktop view for contacts
+  const renderDesktopContactsSection = () => {
+    return (
+      <Col md="6" lg="5" xl="4" className="mb-4 mb-md-0"  style={{ borderRight: '1px solid #aaa'}}>
+        <div className="p-3">
+          <MDBInputGroup className="rounded mb-3">
+            <input
+              className="form-control rounded"
+              placeholder="Type any name to start..."
+              type="search"
+              onKeyDown={handleNewConversation}
+            />
+            <span className="input-group-text border-0" id="search-addon">
+              <MDBIcon fas icon="search" />
+            </span>
+          </MDBInputGroup>
+          <div
+            className="contacts-section"
+            style={{ height: "calc(100vh - 300px)" }}
+          >
+            <AutoSizer>
+              {({ width, height }) => (
+                <List
+                  width={width}
+                  height={height}
+                  itemCount={sortedContacts.length}
+                  itemSize={100}
+                  children={contactRenderer}
+                />
+              )}
+            </AutoSizer>
+          </div>
+        </div>
+      </Col>
+    );
+  };
+
+  // Desktop view for messages
+  const renderDesktopMessagesSection = () => {
+    return (
+      <Col md="6" lg="7" xl="8">
+        <div
+          className="messages-section"
+          style={{
+            width: "100%",
+            height: "calc(100vh - 200px)",
+            overflowY: "auto",
+            paddingRight: "1rem",
+          }}
+        >
+          {contacts[currentContact].messages.map((msg, index) => (
+            <Message
+              key={index}
+              message={msg.message}
+              person={contacts[currentContact]}
+              isUser={msg.isUser}
+              time={msg.time}
+            />
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
+  
+        {renderLoadingIndicator()}
+  
+        <div className="text-muted d-flex justify-content-start align-items-center pe-3 pt-3 mt-2">
+          <Image
+            src={userAvatar}
+            roundedCircle
+            style={{
+              width: "50px",
+              height: "50px",
+              padding: "2px",
+              border: "1px solid #000",
+              marginRight: "5px",
+            }}
+          />
+          <input
+            type="text"
+            className="form-control form-control-lg"
+            id="exampleFormControlInput2"
+            placeholder="Type message"
+            maxLength="200"
+            disabled={isFetchingResponse}
+            value={messageText}
+            onChange={(event) => setMessageText(event.target.value)}
+            onKeyDown={(event) => {
+              if (!isFetchingResponse && event.keyCode === 13) {
+                handleSendMessage({ target: { value: messageText } });
+                setMessageText("");
+              }
+            }}
+          />
+          <Button
+            variant="dark"
+            className="btn btn-primary ms-2"
+            onClick={(event) => {
+              if (!isFetchingResponse) {
+                handleSendMessage({ target: { value: messageText } });
+                setMessageText("");
+              }
+            }}
+          >
+            <ArrowRight size={24} />
+          </Button>
+          <a className="ms-1 text-muted" href="#!">
+            <MDBIcon fas icon="paperclip" />
+          </a>
+          <a className="ms-3 text-muted" href="#!">
+            <MDBIcon fas icon="smile" />
+          </a>
+          <a className="ms-3" href="#!">
+            <MDBIcon fas icon="paper-plane" />
+          </a>
+        </div>
+      </Col>
+    );
+  };  
+
+  // Mobile view for contacts
+  const renderMobileContactsSection = () => {
+    return (
+      <Col xs={12} className="mb-4 mb-md-0">
+        <div className="p-3">
+          <MDBInputGroup className="rounded mb-3">
+            <input
+              className="form-control rounded small-text-on-mobile"
+              placeholder="Type any name to start a conversation..."
+              type="search"
+              onKeyDown={handleNewConversation}
+            />
+            <span className="input-group-text border-0" id="search-addon">
+              <MDBIcon fas icon="search" />
+            </span>
+          </MDBInputGroup>
+          <div
+            className="contacts-section"
+            style={{ height: "300px" }}
+          >
+            <AutoSizer>
+              {({ width }) => (
+                <List
+                  width={width}
+                  height={300}
+                  itemCount={sortedContacts.length}
+                  itemSize={100}
+                  children={contactRenderer}
+                />
+              )}
+            </AutoSizer>
+          </div>
+        </div>
+        <hr></hr>
+        {renderMobileMessagesSection()}
+      </Col>
+    );
+  };
+  
+  const renderMobileMessagesSection = () => {
+    return (
+      <div
+        className="messages-section"
+        style={{
+          width: "100%",
+          height: "calc(100vh - 200px)",
+          overflowY: "auto",
+          paddingRight: "1rem",
+        }}
+      >
+        {contacts[currentContact].messages.map((msg, index) => (
+          <Message
+            key={index}
+            message={msg.message}
+            person={contacts[currentContact]}
+            isUser={msg.isUser}
+            time={msg.time}
+          />
+        ))}
+        <div ref={messagesEndRef} />
+        {renderLoadingIndicator()}
+        <div className="text-muted d-flex justify-content-start align-items-center pe-3 pt-3 mt-2">
+          <Image
+            src={userAvatar}
+            roundedCircle
+            style={{
+              width: "50px",
+              height: "50px",
+              padding: "2px",
+              border: "1px solid #000",
+              marginRight: "5px",
+            }}
+          />
+          <input
+            type="text"
+            className="form-control form-control-lg small-text-on-mobile"
+            id="exampleFormControlInput2"
+            placeholder="Type message"
+            maxLength="200"
+            disabled={isFetchingResponse}
+            value={messageText}
+            onChange={(event) => setMessageText(event.target.value)}
+            onKeyDown={(event) => {
+              if (!isFetchingResponse && event.keyCode === 13) {
+                handleSendMessage({ target: { value: messageText } });
+                setMessageText("");
+              }
+            }}
+          />
+          <Button
+            variant="dark"
+            className="btn btn-primary ms-2"
+            onClick={(event) => {
+              if (!isFetchingResponse) {
+                handleSendMessage({ target: { value: messageText } });
+                setMessageText("");
+              }
+            }}
+          >
+            <ArrowRight size={24} />
+          </Button>
+          <a className="ms-1 text-muted" href="#!">
+            <MDBIcon fas icon="paperclip" />
+          </a>
+          <a className="ms-3 text-muted" href="#!">
+            <MDBIcon fas icon="smile" />
+          </a>
+          <a className="ms-3" href="#!">
+            <MDBIcon fas icon="paper-plane" />
+          </a>
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <Container fluid className="py-5"  style={{ border: '1px solid gray' }}>
+    <Container fluid className="py-5" style={{ border: "1px solid gray" }}>
       <Row>
         <Col xs={12}>
-              <Row>
-                <MediaQuery maxWidth={767}>
-                  {(matches) =>
-                    matches ? (
-                      // Mobile layout
-                      <>
-                        <Col xs={12} className="mb-4 mb-md-0">
-                        <div className="p-3">
-                            <MDBInputGroup className="rounded mb-3">
-                              <input
-                                className="form-control rounded small-text-on-mobile"
-                                placeholder="Type any name to start a conversation..."
-                                type="search"
-                                onKeyDown={handleNewConversation}
-                              />
-                              <span
-                                className="input-group-text border-0"
-                                id="search-addon"
-                              >
-                                <MDBIcon fas icon="search" />
-                              </span>
-                            </MDBInputGroup>
-                            <div
-                              className="contacts-section"
-                              style={{ height: "300px" }}
-                            >
-                              <AutoSizer>
-                                {({ width }) => (
-                                  <List
-                                    width={width}
-                                    height={300}
-                                    itemCount={sortedContacts.length}
-                                    itemSize={100}
-                                    children={contactRenderer}
-                                  />
-                                )}
-                              </AutoSizer>
-                            </div>
-                          </div>
-                          <hr></hr>
-                          <div
-                            className="messages-section"
-                            style={{
-                              width: "100%",
-                              height: "calc(100vh - 200px)",
-                              overflowY: "auto",
-                              paddingRight: "1rem",
-                            }}
-                        >
-                            {contacts[currentContact].messages.map(
-                              (msg, index) => (
-                                <Message
-                                  key={index}
-                                  message={msg.message}
-                                  person={contacts[currentContact]}
-                                  isUser={msg.isUser}
-                                  time={msg.time}
-                                />
-                              )
-                            )}
-                            <div ref={messagesEndRef} />
-                          </div>
-  
-                          {renderLoadingIndicator()}
-                          <div className="text-muted d-flex justify-content-start align-items-center pe-3 pt-3 mt-2">
-                            <Image
-                              src={userAvatar}
-                              roundedCircle
-                              style={{
-                                width: "50px",
-                                height: "50px",
-                                padding: "2px",
-                                border: "1px solid #000",
-                                marginRight: "5px",
-                              }}
-                            />
-                            <input
-                              type="text"
-                              className="form-control form-control-lg small-text-on-mobile"
-                              id="exampleFormControlInput2"
-                              placeholder="Type message"
-                              maxLength="200"
-                              disabled={isFetchingResponse}
-                              value={messageText}
-                              onChange={(event) =>
-                                setMessageText(event.target.value)
-                              }
-                              onKeyDown={(event) => {
-                                if (
-                                  !isFetchingResponse &&
-                                  event.keyCode === 13
-                                ) {
-                                  handleSendMessage({
-                                    target: { value: messageText },
-                                  });
-                                  setMessageText("");
-                                }
-                              }}
-                            />
-                          <Button
-                            variant="dark"
-                            className="btn btn-primary ms-2"
-                            onClick={(event) => {
-                              if (!isFetchingResponse) {
-                                handleSendMessage({
-                                  target: { value: messageText },
-                                });
-                                setMessageText("");
-                              }
-                            }}
-                          >
-                            <ArrowRight size={24} />
-                          </Button>
-                          <a className="ms-1 text-muted" href="#!">
-                            <MDBIcon fas icon="paperclip" />
-                          </a>
-                          <a className="ms-3 text-muted" href="#!">
-                            <MDBIcon fas icon="smile" />
-                          </a>
-                          <a className="ms-3" href="#!">
-                            <MDBIcon fas icon="paper-plane" />
-                          </a>
-                        </div>
-                      </Col>
-                    </>
-                  ) : (
-                    // Desktop layout
-                    <>
-                      <Col md="6" lg="5" xl="4" className="mb-4 mb-md-0">
-                        <div className="p-3">
-                          <MDBInputGroup className="rounded mb-3">
-                            <input
-                              className="form-control rounded"
-                              placeholder="Type any name to start..."
-                              type="search"
-                              onKeyDown={handleNewConversation}
-                            />
-                            <span
-                              className="input-group-text border-0"
-                              id="search-addon"
-                            >
-                              <MDBIcon fas icon="search" />
-                            </span>
-                          </MDBInputGroup>
-                          <div
-                            className="contacts-section"
-                            style={{ height: "calc(100vh - 300px)" }}
-                          >
-                            <AutoSizer>
-                              {({ width, height }) => (
-                                <List
-                                  width={width}
-                                  height={height}
-                                  itemCount={sortedContacts.length}
-                                  itemSize={100}
-                                  children={contactRenderer}
-                                />
-                              )}
-                            </AutoSizer>
-                          </div>
-                        </div>
-                      </Col>
-                      <Col md="6" lg="7" xl="8">
-                      <div
-  className="messages-section"
-  style={{
-    width: "100%",
-    height: "calc(100vh - 200px)",
-    overflowY: "auto",
-                            paddingRight: "1rem",
-  }}
->
-                          {contacts[currentContact].messages.map(
-                            (msg, index) => (
-      <Message
-        key={index}
-        message={msg.message}
-        person={contacts[currentContact]}
-        isUser={msg.isUser}
-        time={msg.time}
-      />
-                            )
-                          )}
-  <div ref={messagesEndRef} />
-</div>
-                        {renderLoadingIndicator()}
-                        <div className="text-muted d-flex justify-content-start align-items-center pe-3 pt-3 mt-2">
-                          <Image
-                            src={userAvatar}
-                            roundedCircle
-                            style={{
-                              width: "50px",
-                              height: "50px",
-                              padding: "2px",
-                              border: "1px solid #000",
-                              marginRight: "5px",
-                            }}
-                          />
-                          <input
-                            type="text"
-                            className="form-control form-control-lg"
-                            id="exampleFormControlInput2"
-                            placeholder="Type message"
-                            maxLength="200"
-                            disabled={isFetchingResponse}
-                            value={messageText}
-                            onChange={(event) =>
-                              setMessageText(event.target.value)
-                            }
-                            onKeyDown={(event) => {
-                              if (
-                                !isFetchingResponse &&
-                                event.keyCode === 13
-                              ) {
-                                handleSendMessage({
-                                  target: { value: messageText },
-                                });
-                                setMessageText("");
-                              }
-                            }}
-                          />
-                          <Button
-                            variant="dark"
-                            className="btn btn-primary ms-2"
-                            onClick={(event) => {
-                              if (!isFetchingResponse) {
-                                handleSendMessage({
-                                  target: { value: messageText },
-                                });
-                                setMessageText("");
-                              }
-                            }}
-                          >
-                            <ArrowRight size={24} />
-                          </Button>
-                          <a className="ms-1 text-muted" href="#!">
-                            <MDBIcon fas icon="paperclip" />
-                          </a>
-                          <a className="ms-3 text-muted" href="#!">
-                            <MDBIcon fas icon="smile" />
-                          </a>
-                          <a className="ms-3" href="#!">
-                            <MDBIcon fas icon="paper-plane" />
-                          </a>
-                        </div>
-                      </Col>
-                    </>
-                  )
-                }
-              </MediaQuery>
-            </Row>
-      </Col>
-    </Row>
-  </Container>
- );
-}
- 
+          <Row>
+            <MediaQuery maxWidth={767}>
+              {(matches) =>
+                matches ? (
+                  // Mobile layout
+                  <>
+                    {renderMobileContactsSection()}
+                    {renderMobileMessagesSection()}
+                  </>
+                ) : (
+                  // Desktop layout
+                  <>
+                    {renderDesktopContactsSection()}
+                    {renderDesktopMessagesSection()}
+                  </>
+                )
+              }
+            </MediaQuery>
+          </Row>
+        </Col>
+      </Row>
+    </Container>
+  );
+};
 
 const fetchImageUrl = async (searchTerm) => {
   try {

@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Nav, Container, Image } from "react-bootstrap";
-import otisfuse from '../img/of.jpg';
+import otisfuse from '../img/of.png';
 
 const Menu = () => {
   return (
