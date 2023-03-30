@@ -48,7 +48,7 @@ const Contact = ({ person, handleContactClick, handleDeleteContact, index, curre
             />
             <span className="badge bg-success badge-dot"></span>
           </div>
-          <div className="pt-1">
+          <div className="pt-1 small-text-on-mobile">
             <p className="fw-bold mb-0"><u>{person.name}</u></p>
             <p className="small text-muted">{lastMessageTruncated}</p>
           </div>

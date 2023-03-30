@@ -15,12 +15,12 @@ const Message = ({ message, person, time, isUser }) => {
         </div>
         <div>
           <p
-            className="small p-2 ms-3 mb-1 rounded-3"
+            className="small p-2 ms-3 mb-1 rounded-3 small-text-on-mobile"
             style={{ backgroundColor: "#b3cee5" }}
           >
             {message}
           </p>
-          <p className="small ms-3 mb-3 rounded-3 text-muted float-start">
+          <p className="small ms-3 mb-3 rounded-3 text-muted float-start small-text-on-mobile">
             {time}
           </p>
         </div>
@@ -38,12 +38,12 @@ const Message = ({ message, person, time, isUser }) => {
         </div>
         <div>
           <p
-            className="small p-2 ms-3 mb-1 rounded-3"
+            className="small p-2 ms-3 mb-1 rounded-3 small-text-on-mobile"
             style={{ backgroundColor: "#f5f6f7" }}
           >
             {message}
           </p>
-          <p className="small ms-3 mb-3 rounded-3 text-muted float-end">
+          <p className="small ms-3 mb-3 rounded-3 text-muted float-end small-text-on-mobile">
             {time}
           </p>
         </div>

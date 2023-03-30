@@ -43,11 +43,11 @@ const Chat = () => {
 
 
     // update local storage every time contacts or currentContact changes
-useEffect(() => {
-  localStorage.setItem("contacts", JSON.stringify(contacts));
-  localStorage.setItem("currentContact", currentContact);
-  scrollToBottom();
-    }, [contacts, currentContact, messageCount]);
+    useEffect(() => {
+      localStorage.setItem("contacts", JSON.stringify(contacts));
+      localStorage.setItem("currentContact", currentContact);
+      scrollToBottom();
+        }, [contacts, currentContact, messageCount]);
 
     useEffect(() => {
       // If the name parameter is present, create a new contact with the given name
@@ -330,8 +330,11 @@ useEffect(() => {
   const renderMobileContactsSection = () => {
     return (
       <Col xs={12} className="mb-4 mb-md-0">
-        <div className="p-3">
-          <MDBInputGroup className="rounded mb-3">
+        <div className="p-1">
+          <MDBInputGroup
+            className="rounded mb-1"
+            style={{ paddingTop: 0, paddingBottom: 0 }}
+          >
             <input
               className="form-control rounded small-text-on-mobile"
               placeholder="Type any name to start a conversation..."
@@ -344,13 +347,13 @@ useEffect(() => {
           </MDBInputGroup>
           <div
             className="contacts-section"
-            style={{ height: "300px" }}
+            style={{ height: "calc(100vh - 450px)", overflowY: "auto" }}
           >
             <AutoSizer>
-              {({ width }) => (
+              {({ width, height }) => (
                 <List
                   width={width}
-                  height={300}
+                  height={height}
                   itemCount={sortedContacts.length}
                   itemSize={100}
                   children={contactRenderer}
@@ -360,34 +363,47 @@ useEffect(() => {
           </div>
         </div>
         <hr></hr>
-        {renderMobileMessagesSection()}
       </Col>
     );
   };
   
+  
   const renderMobileMessagesSection = () => {
     return (
-      <div
-        className="messages-section"
-        style={{
-          width: "100%",
-          height: "calc(100vh - 200px)",
-          overflowY: "auto",
-          paddingRight: "1rem",
-        }}
-      >
-        {contacts[currentContact].messages.map((msg, index) => (
-          <Message
-            key={index}
-            message={msg.message}
-            person={contacts[currentContact]}
-            isUser={msg.isUser}
-            time={msg.time}
-          />
-        ))}
-        <div ref={messagesEndRef} />
-        {renderLoadingIndicator()}
-        <div className="text-muted d-flex justify-content-start align-items-center pe-3 pt-3 mt-2">
+      <>
+        <div
+          className="messages-section"
+          style={{
+            width: "100%",
+            height: "calc(100vh - 200px)",
+            overflowY: "auto",
+            paddingRight: "1rem",
+            marginBottom: "65px", // Add margin to the bottom to avoid overlapping with the input
+          }}
+        >
+          {contacts[currentContact].messages.map((msg, index) => (
+            <Message
+              key={index}
+              message={msg.message}
+              person={contacts[currentContact]}
+              isUser={msg.isUser}
+              time={msg.time}
+            />
+          ))}
+          <div ref={messagesEndRef} />
+          {renderLoadingIndicator()}
+        </div>
+        <div
+          className="fixed-bottom"
+          style={{
+            backgroundColor: "white",
+            borderTop: "1px solid #aaa",
+            paddingLeft: "1rem",
+            paddingRight: "1rem",
+          }}
+        >
+          <div className="text-muted d-flex justify-content-start align-items-center pt-3 mt-2">
+          <div className="text-muted d-flex justify-content-start align-items-center pe-3 pt-3 mt-2">
           <Image
             src={userAvatar}
             roundedCircle
@@ -427,22 +443,15 @@ useEffect(() => {
           >
             <ArrowRight size={24} />
           </Button>
-          <a className="ms-1 text-muted" href="#!">
-            <MDBIcon fas icon="paperclip" />
-          </a>
-          <a className="ms-3 text-muted" href="#!">
-            <MDBIcon fas icon="smile" />
-          </a>
-          <a className="ms-3" href="#!">
-            <MDBIcon fas icon="paper-plane" />
-          </a>
         </div>
-      </div>
+          </div>
+        </div>
+      </>
     );
   };
 
   return (
-    <Container fluid className="py-5" style={{ border: "1px solid gray" }}>
+    <Container fluid className="py-2" style={{ border: "1px solid gray" }}>
       <Row>
         <Col xs={12}>
           <Row>
