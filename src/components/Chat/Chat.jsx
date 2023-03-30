@@ -53,11 +53,6 @@ const Chat = () => {
           ),
       [contacts]
     );
-    
-    console.log("Contacts")
-    console.log(contacts)
-    console.log("Sorted Contacts")
-    console.log(sortedContacts)
     const [currentContact, setCurrentContact] = useState(localStorage.getItem("currentContact"));
     const [messageCount, setMessageCount] = useState(0);
     const [isFetchingResponse, setIsFetchingResponse] = useState(false);

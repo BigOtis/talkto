@@ -3,6 +3,18 @@ import { Image } from "react-bootstrap";
 import userAvatar from "../../img/avatar2.png";
 
 const Message = ({ message, person, time, isUser }) => {
+  const convertNamesToLinks = (messageText) => {
+    const urlPrefix = `${window.location.origin}/chat/`;
+    const nameTagRegex = /<name>(.+?)<\/name>/g;
+
+    return messageText.replace(nameTagRegex, (_, name) => {
+      const url = urlPrefix + encodeURIComponent(name.replace(/ /g, "_"));
+      return `<a href="${url}" target="_blank" rel="noopener noreferrer">${name}</a>`;
+    });
+  };
+
+  const messageHtml = { __html: convertNamesToLinks(message) };
+
   if (isUser) {
     return (
       <div className="d-flex flex-row justify-content-start">
@@ -40,9 +52,8 @@ const Message = ({ message, person, time, isUser }) => {
           <p
             className="small p-2 ms-3 mb-1 rounded-3 small-text-on-mobile"
             style={{ backgroundColor: "#f5f6f7" }}
-          >
-            {message}
-          </p>
+            dangerouslySetInnerHTML={messageHtml}
+          />
           <p className="small ms-3 mb-3 rounded-3 text-muted float-end small-text-on-mobile">
             {time}
           </p>
