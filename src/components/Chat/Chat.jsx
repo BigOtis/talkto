@@ -1,14 +1,10 @@
 import React from "react";
-import {
-  MDBIcon,
-  MDBInputGroup,
-} from "mdb-react-ui-kit";
 import Message from "./Message";
 import Contact from "./Contact";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import fetchChatResponse from "../../utils/chatAPI";
-import { Spinner, Button, Image, Container, Row, Col } from "react-bootstrap";
-import { ArrowRight } from "react-bootstrap-icons";
+import { Modal, Button, Container, Row, Col, Image, Spinner, Form } from "react-bootstrap";
+import { ArrowRight, PersonPlus, Share, ChatSquareDotsFill } from "react-bootstrap-icons";
 import userAvatar from "../../img/avatar2.png";
 import { FixedSizeList as List } from "react-window";
 import AutoSizer from "react-virtualized-auto-sizer";
@@ -19,7 +15,18 @@ import "./chat.css";
 const Chat = () => {
     let { name } = useParams();
 
-    const toni = { avatar: "https://th.bing.com/th/id/OIG.SH7.u10w3N.sMfZ.6X8t?pid=ImgGn", name: "OtisFuse AI Helper", messages: [{"message": "Welcome to OtisFuse AI Chat, where you can talk to any character you can imagine. Just type any name you want to chat with in the new conversation area to create a new character to chat with. Let me know if you have any questions or if you want me to suggest some famous characters for you to chat with. Remember, all conversations are purely fictional in nature.", "time": "Now", "isUser": false}] }
+    const toni = {
+      avatar: "https://th.bing.com/th/id/OIG.SH7.u10w3N.sMfZ.6X8t?pid=ImgGn",
+      name: "OtisFuse AI Helper",
+      messages: [
+        {
+          message:
+            "Welcome to OtisFuse AI Chat, where you can talk to any character you can imagine. Just type any name you want to chat with in the new conversation area to create a new character to chat with. Let me know if you have any questions or if you want me to suggest some famous characters for you to chat with. Remember, all conversations are purely fictional in nature.",
+          time: getDateTimeString(),
+          isUser: false,
+        },
+      ],
+    };
     const messagesEndRef = useRef(null);
 
     // if local storage is undefined, initialize it
@@ -35,12 +42,28 @@ const Chat = () => {
 
     // load contacts and currentContact from local storage
     const [contacts, setContacts] = useState(JSON.parse(localStorage.getItem("contacts")));
-    const sortedContacts = contacts.slice().sort((a, b) => new Date(b.messages[b.messages.length - 1].time) - new Date(a.messages[a.messages.length - 1].time));
+    const sortedContacts = useMemo(
+      () =>
+        contacts
+          .slice()
+          .sort(
+            (a, b) =>
+              new Date(b.messages[b.messages.length - 1].time).getTime() -
+              new Date(a.messages[a.messages.length - 1].time).getTime()
+          ),
+      [contacts]
+    );
+    
+    console.log("Contacts")
+    console.log(contacts)
+    console.log("Sorted Contacts")
+    console.log(sortedContacts)
     const [currentContact, setCurrentContact] = useState(localStorage.getItem("currentContact"));
     const [messageCount, setMessageCount] = useState(0);
     const [isFetchingResponse, setIsFetchingResponse] = useState(false);
     const [messageText, setMessageText] = useState("");
-
+    const [showContactsModal, setShowContactsModal] = useState(false);
+    const [newContact, setNewContact] = useState("");
 
     // update local storage every time contacts or currentContact changes
     useEffect(() => {
@@ -56,7 +79,7 @@ const Chat = () => {
         name = name.replace(/_/g, " ");
         const existingContactIndex = contacts.findIndex((contact) => contact.name.toLowerCase() === name.toLowerCase());
     if (existingContactIndex === -1) {
-          handleNewConversation({ keyCode: 13, target: { value: name } });
+          handleNewContact(name);
         } else {
       setCurrentContact(existingContactIndex);
     }
@@ -92,9 +115,8 @@ const Chat = () => {
       }
     };
     
-    const handleNewConversation = async (event) => {
-      if (event.keyCode === 13) {
-        const name = event.target.value.trim();
+    const handleNewContact = async (newContactName) => {
+        const name = newContactName.trim();
         if (name) {
           const avatarUrl = await fetchImageUrl(name);
           const deletedContacts = JSON.parse(localStorage.getItem("deletedContacts")) || [];
@@ -113,9 +135,8 @@ const Chat = () => {
           }
           setContacts([...contacts, newContact]);
           setCurrentContact(contacts.length);
-          event.target.value = "";
+          setNewContact("");
         }
-      }
     };     
 
     const scrollToBottom = () => {
@@ -211,19 +232,31 @@ const Chat = () => {
   // Desktop view for contacts
   const renderDesktopContactsSection = () => {
     return (
-      <Col md="6" lg="5" xl="4" className="mb-4 mb-md-0"  style={{ borderRight: '1px solid #aaa'}}>
+      <Col md="6" lg="5" xl="4" className="mb-4 mb-md-0" style={{ borderRight: "1px solid #aaa" }}>
         <div className="p-3">
-          <MDBInputGroup className="rounded mb-3">
-            <input
-              className="form-control rounded"
-              placeholder="Type any name to start..."
-              type="search"
-              onKeyDown={handleNewConversation}
-            />
-            <span className="input-group-text border-0" id="search-addon">
-              <MDBIcon fas icon="search" />
-            </span>
-          </MDBInputGroup>
+          <Form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleNewContact(newContact);
+            }}
+          >
+            <Form.Group className="d-flex mb-3">
+              <Form.Control
+                type="text"
+                placeholder="Type any name to start..."
+                value={newContact}
+                onChange={(e) => setNewContact(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.keyCode === 13) {
+                    handleNewContact(newContact);
+                  }
+                }}
+              />
+              <Button variant="primary" type="submit" className="border-0 ms-2">
+                <PersonPlus size={24} />
+              </Button>
+            </Form.Group>
+          </Form>
           <div
             className="contacts-section"
             style={{ height: "calc(100vh - 300px)" }}
@@ -312,61 +345,135 @@ const Chat = () => {
           >
             <ArrowRight size={24} />
           </Button>
-          <a className="ms-1 text-muted" href="#!">
-            <MDBIcon fas icon="paperclip" />
-          </a>
-          <a className="ms-3 text-muted" href="#!">
-            <MDBIcon fas icon="smile" />
-          </a>
-          <a className="ms-3" href="#!">
-            <MDBIcon fas icon="paper-plane" />
-          </a>
         </div>
       </Col>
     );
   };  
 
-  // Mobile view for contacts
-  const renderMobileContactsSection = () => {
+// Mobile view for contacts button
+const renderMobileContactsSection = () => {
+    const shareUrl = `${window.location.origin}/chat/${contacts[currentContact].name.replace(/ /g, "_")}`;
+
+    const copyToClipboard = (text) => {
+      const element = document.createElement("textarea");
+      element.value = text;
+      element.setAttribute("readonly", "");
+      element.style.position = "absolute";
+      element.style.left = "-9999px";
+      document.body.appendChild(element);
+      element.select();
+      document.execCommand("copy");
+      document.body.removeChild(element);
+    };    
+  
+    const handleShareClick = () => {
+      copyToClipboard(shareUrl);
+      alert(`URL copied to clipboard: ${shareUrl}`);
+    };
+  
     return (
-      <Col xs={12} className="mb-4 mb-md-0">
-        <div className="p-1">
-          <MDBInputGroup
-            className="rounded mb-1"
-            style={{ paddingTop: 0, paddingBottom: 0 }}
-          >
-            <input
-              className="form-control rounded small-text-on-mobile"
-              placeholder="Type any name to start a conversation..."
-              type="search"
-              onKeyDown={handleNewConversation}
-            />
-            <span className="input-group-text border-0" id="search-addon">
-              <MDBIcon fas icon="search" />
-            </span>
-          </MDBInputGroup>
-          <div
-            className="contacts-section"
-            style={{ height: "calc(100vh - 450px)", overflowY: "auto" }}
-          >
-            <AutoSizer>
-              {({ width, height }) => (
-                <List
-                  width={width}
-                  height={height}
-                  itemCount={sortedContacts.length}
-                  itemSize={100}
-                  children={contactRenderer}
-                />
-              )}
-            </AutoSizer>
+      <>
+        <div
+          className="d-flex justify-content-between align-items-center"
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            backgroundColor: "#f8f9fa",
+            padding: "0.5rem 1rem",
+            borderBottom: "1px solid #aaa",
+            zIndex: 1050,
+          }}
+        >
+          <div className="d-flex align-items-center">
+            <Button
+              variant="outline-secondary"
+              className="me-3"
+              onClick={() => setShowContactsModal(true)}
+            >
+              <ChatSquareDotsFill size={24} />
+            </Button>
+            <h6 className="mb-0">{contacts[currentContact].name}</h6>
           </div>
+          <Button
+            variant="outline-secondary"
+            onClick={handleShareClick}
+          >
+            <Share size={24} />
+          </Button>
         </div>
-        <hr></hr>
-      </Col>
+      </>
+    );
+  };  
+
+  const renderContactsModal = () => {
+    return (
+      <Modal
+        show={showContactsModal}
+        onHide={toggleContactsModal}
+        size="xl"
+        dialogClassName="modal-100w"
+        aria-labelledby="contained-modal-title-vcenter"
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title id="contained-modal-title-vcenter">Contacts</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+        <Form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleNewContact(newContact);
+            toggleContactsModal();
+          }}
+        >
+          <Form.Group className="d-flex">
+            <Form.Control
+              type="text"
+              placeholder="Start new chat"
+              value={newContact}
+              onChange={(e) => setNewContact(e.target.value)}
+            />
+            <Button variant="primary" type="submit" className="ms-2">
+              <PersonPlus size={20} />
+            </Button>
+          </Form.Group>
+        </Form>
+          <div className="contacts-list" style={{ maxHeight: "80vh", overflowY: "auto" }}>
+            {sortedContacts.map((person, index) => (
+              <div
+                key={index}
+                onClick={() => {
+                  setCurrentContact(index);
+                  toggleContactsModal();
+                }}
+                className={`d-flex align-items-center p-2 ${
+                  currentContact === index ? "bg-light" : ""
+                }`}
+              >
+                <Image
+                  src={person.avatar}
+                  roundedCircle
+                  style={{
+                    width: "50px",
+                    height: "50px",
+                    padding: "2px",
+                    border: "1px solid #000",
+                  }}
+                />
+                <span className="ms-3">{person.name}</span>
+              </div>
+            ))}
+          </div>
+        </Modal.Body>
+      </Modal>
     );
   };
-  
+
+  const toggleContactsModal = () => {
+    setShowContactsModal(!showContactsModal);
+  };
   
   const renderMobileMessagesSection = () => {
     return (
@@ -396,60 +503,57 @@ const Chat = () => {
         <div
           className="fixed-bottom"
           style={{
-            backgroundColor: "white",
             borderTop: "1px solid #aaa",
             paddingLeft: "1rem",
             paddingRight: "1rem",
           }}
         >
-          <div className="text-muted d-flex justify-content-start align-items-center pt-3 mt-2">
-          <div className="text-muted d-flex justify-content-start align-items-center pe-3 pt-3 mt-2">
-          <Image
-            src={userAvatar}
-            roundedCircle
-            style={{
-              width: "50px",
-              height: "50px",
-              padding: "2px",
-              border: "1px solid #000",
-              marginRight: "5px",
-            }}
-          />
-          <input
-            type="text"
-            className="form-control form-control-lg small-text-on-mobile"
-            id="exampleFormControlInput2"
-            placeholder="Type message"
-            maxLength="200"
-            disabled={isFetchingResponse}
-            value={messageText}
-            onChange={(event) => setMessageText(event.target.value)}
-            onKeyDown={(event) => {
-              if (!isFetchingResponse && event.keyCode === 13) {
-                handleSendMessage({ target: { value: messageText } });
-                setMessageText("");
-              }
-            }}
-          />
-          <Button
-            variant="dark"
-            className="btn btn-primary ms-2"
-            onClick={(event) => {
-              if (!isFetchingResponse) {
-                handleSendMessage({ target: { value: messageText } });
-                setMessageText("");
-              }
-            }}
-          >
-            <ArrowRight size={24} />
-          </Button>
-        </div>
+          <div className="text-muted d-flex justify-content-center align-items-center pt-3">
+            <Image
+              src={userAvatar}
+              roundedCircle
+              style={{
+                width: "50px",
+                height: "50px",
+                padding: "2px",
+                border: "1px solid #000",
+                marginRight: "5px",
+              }}
+            />
+            <input
+              type="text"
+              className="form-control form-control-lg small-text-on-mobile"
+              id="exampleFormControlInput2"
+              placeholder="Type message"
+              maxLength="200"
+              disabled={isFetchingResponse}
+              value={messageText}
+              onChange={(event) => setMessageText(event.target.value)}
+              onKeyDown={(event) => {
+                if (!isFetchingResponse && event.keyCode === 13) {
+                  handleSendMessage({ target: { value: messageText } });
+                  setMessageText("");
+                }
+              }}
+            />
+            <Button
+              variant="dark"
+              className="btn btn-primary ms-2"
+              onClick={(event) => {
+                if (!isFetchingResponse) {
+                  handleSendMessage({ target: { value: messageText } });
+                  setMessageText("");
+                }
+              }}
+            >
+              <ArrowRight size={24} />
+            </Button>
           </div>
         </div>
       </>
     );
   };
-
+  
   return (
     <Container fluid className="py-2" style={{ border: "1px solid gray" }}>
       <Row>
@@ -475,6 +579,7 @@ const Chat = () => {
           </Row>
         </Col>
       </Row>
+      {renderContactsModal()}
     </Container>
   );
 };
