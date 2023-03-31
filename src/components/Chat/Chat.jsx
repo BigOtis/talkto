@@ -42,17 +42,6 @@ const Chat = () => {
 
     // load contacts and currentContact from local storage
     const [contacts, setContacts] = useState(JSON.parse(localStorage.getItem("contacts")));
-    const sortedContacts = useMemo(
-      () =>
-        contacts
-          .slice()
-          .sort(
-            (a, b) =>
-              new Date(b.messages[b.messages.length - 1].time).getTime() -
-              new Date(a.messages[a.messages.length - 1].time).getTime()
-          ),
-      [contacts]
-    );
     const [currentContact, setCurrentContact] = useState(localStorage.getItem("currentContact"));
     const [messageCount, setMessageCount] = useState(0);
     const [isFetchingResponse, setIsFetchingResponse] = useState(false);
@@ -81,10 +70,8 @@ const Chat = () => {
   }
     }, [name]);
     
-    const handleContactClick = (sortedIndex) => {
-      const selectedContact = sortedContacts[sortedIndex];
-      const originalIndex = contacts.findIndex(contact => contact === selectedContact);
-      setCurrentContact(originalIndex);
+    const handleContactClick = (index) => {
+      setCurrentContact(index);
     };
 
     const handleDeleteContact = (index) => {
@@ -125,11 +112,12 @@ const Chat = () => {
             newContact = {
               avatar: avatarUrl || "https://via.placeholder.com/150",
               name: name,
-              messages: [{"message": `Hello... you've reached ${name}.`, "time": "Now", "isUser": false}],
+              messages: [{"message": `Hello... you've reached ${name}.`, "time": getDateTimeString(), "isUser": false}],
             };
           }
-          setContacts([...contacts, newContact]);
-          setCurrentContact(contacts.length);
+          const updatedContacts = sortContacts([...contacts, newContact]);
+          setContacts(updatedContacts);
+          setCurrentContact(0);
           setNewContact("");
         }
     };     
@@ -139,43 +127,36 @@ const Chat = () => {
     };
 
     const handleSendMessage = async (event) => {
-      const updatedContacts = [...contacts];
-      // get the current contact and append our message to it's message list
-      contacts[currentContact].messages.push({
+      // Get the current contact and append the user's message to its message list
+      const userMessage = {
         message: event.target.value,
         time: getDateTimeString(),
         isUser: true,
-      });
-
-      setContacts(updatedContacts);
+      };
+      contacts[currentContact].messages.push(userMessage);
       setMessageCount(messageCount + 1);
-      
-      // clear the input now that the message has been sent
+      setContacts(contacts);    
+    
+      // Clear the input now that the message has been sent
       event.target.value = "";
-
       setIsFetchingResponse(true);
-
+    
+      // Call the chat API to get a response from the assistant
       try {
-        // Call the chat API to get a response from the assistant
         const response = await Promise.race([
           fetchChatResponse(contacts[currentContact], contacts[currentContact].messages),
           timeout(10000),
         ]);
     
-        // Add the response to the messages array
-        contacts[currentContact].messages.push({
+        // Add the assistant's response to the messages array
+        const assistantMessage = {
           message: response,
           time: getDateTimeString(),
           isUser: false,
-        });
-    
-        setContacts([...contacts]);
-        setMessageCount(messageCount + 1);
-        setIsFetchingResponse(false);
-    
+        };
+        contacts[currentContact].messages.push(assistantMessage);
       } catch (error) {
         console.error("Error fetching chat response", error);
-        setIsFetchingResponse(false);
     
         // Show an error message to the user
         contacts[currentContact].messages.push({
@@ -183,11 +164,20 @@ const Chat = () => {
           time: getDateTimeString(),
           isUser: false,
         });
-        setContacts([...contacts]);
-        setMessageCount(messageCount + 1);
+      } finally {
+        setIsFetchingResponse(false);
       }
+    
+      // Sort contacts and update the states
+      const updatedContacts = sortContacts([...contacts]);
+      const newCurrentContactIndex = updatedContacts.findIndex(
+        (contact) => contact.name === contacts[currentContact].name
+      );
+      setMessageCount(messageCount + 1);
+      setContacts(updatedContacts);
+      setCurrentContact(newCurrentContactIndex);
     };
-
+    
   const renderLoadingIndicator = () => {
     if (isFetchingResponse) {
       return (
@@ -202,7 +192,7 @@ const Chat = () => {
   };
 
   const contactRenderer = ({ index, style }) => {
-    const person = sortedContacts[index];
+    const person = contacts[index];
     return (
       <div key={index} style={{ ...style }}>
         <Contact
@@ -212,7 +202,6 @@ const Chat = () => {
           handleContactClick={handleContactClick}
           handleDeleteContact={handleDeleteContact}
           currentContact={currentContact}
-          contacts={contacts}
         />
       </div>
     );
@@ -261,7 +250,7 @@ const Chat = () => {
                 <List
                   width={width}
                   height={height}
-                  itemCount={sortedContacts.length}
+                  itemCount={contacts.length}
                   itemSize={100}
                   children={contactRenderer}
                 />
@@ -436,7 +425,7 @@ const renderMobileContactsSection = () => {
           </Form.Group>
         </Form>
           <div className="contacts-list" style={{ maxHeight: "80vh", overflowY: "auto" }}>
-            {sortedContacts.map((person, index) => (
+            {contacts.map((person, index) => (
               <div
                 key={index}
                 onClick={() => {
@@ -477,10 +466,11 @@ const renderMobileContactsSection = () => {
           className="messages-section"
           style={{
             width: "100%",
-            height: "calc(100vh - 200px)",
+            height: "calc(100vh - 50px)",
             overflowY: "auto",
+            paddingTop: "75px", // Add padding to the top to avoid overlapping with the input
             paddingRight: "1rem",
-            marginBottom: "65px", // Add margin to the bottom to avoid overlapping with the input
+            marginBottom: "60px", // Add margin to the bottom to avoid overlapping with the input
           }}
         >
           {contacts[currentContact].messages.map((msg, index) => (
@@ -550,7 +540,11 @@ const renderMobileContactsSection = () => {
   };
   
   return (
-    <Container fluid className="py-2" style={{ border: "1px solid gray" }}>
+    <Container
+      fluid
+      className="py-2"
+      style={{ height: "100vh", maxHeight: "100vh", overflow: "hidden" }}
+    >
       <Row>
         <Col xs={12}>
           <Row>
@@ -578,7 +572,7 @@ const renderMobileContactsSection = () => {
     </Container>
   );
 };
-
+  
 const fetchImageUrl = async (searchTerm) => {
   try {
     const response = await fetch("/api/getImage", {
@@ -595,6 +589,14 @@ const fetchImageUrl = async (searchTerm) => {
     console.error("Error fetching image URL:", error);
     return null;
   }
+};
+
+const sortContacts = (contacts) => {
+  return contacts.sort((a, b) => {
+    const lastMessageTimeA = new Date(a.messages[a.messages.length - 1].time);
+    const lastMessageTimeB = new Date(b.messages[b.messages.length - 1].time);
+    return lastMessageTimeB - lastMessageTimeA;
+  });
 };
   
 const getDateTimeString = () => {

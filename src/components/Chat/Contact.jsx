@@ -2,7 +2,7 @@ import React from "react";
 import { Image } from "react-bootstrap";
 import { FiTrash2, FiShare } from "react-icons/fi";
 
-const Contact = ({ person, handleContactClick, handleDeleteContact, index, currentContact, contacts }) => {
+const Contact = ({ person, handleContactClick, handleDeleteContact, index, currentContact }) => {
   const lastMessage = person.messages[person.messages.length - 1].message;
 
   // if the last message is too long, truncate it
@@ -53,7 +53,7 @@ const Contact = ({ person, handleContactClick, handleDeleteContact, index, curre
             <p className="small text-muted">{lastMessageTruncated}</p>
           </div>
         </div>
-        {currentContact === contacts.findIndex(contact => contact === person) && (
+        {currentContact === index && (
           <div className="d-flex">
             <div style={{ display: "inline-block" }}>
               <button
