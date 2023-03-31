@@ -1,15 +1,16 @@
 import React from "react";
 import Message from "./Message";
 import Contact from "./Contact";
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import fetchChatResponse from "../../utils/chatAPI";
-import { Modal, Button, Container, Row, Col, Image, Spinner, Form } from "react-bootstrap";
-import { ArrowRight, PersonPlus, Share, ChatSquareDotsFill } from "react-bootstrap-icons";
+import { Modal, Button, Container, Row, Col, Image, Spinner, Form, Dropdown, ButtonToolbar } from "react-bootstrap";
+import { ArrowRight, PersonPlus, ChatSquareDotsFill, ThreeDotsVertical, Facebook, Twitter, BriefcaseFill, Instagram, Clipboard, Pinterest } from "react-bootstrap-icons";
 import userAvatar from "../../img/avatar2.png";
 import { FixedSizeList as List } from "react-window";
 import AutoSizer from "react-virtualized-auto-sizer";
 import MediaQuery from "react-responsive";
 import { useParams } from "react-router-dom";
+import AboutInfo from "../AboutInfo";
 import "./chat.css";
 
 const Chat = () => {
@@ -28,7 +29,7 @@ const Chat = () => {
       ],
     };
     const messagesEndRef = useRef(null);
-
+    const inputRef = useRef(null);
     // if local storage is undefined, initialize it
     if (localStorage.getItem("contacts") === null) {
         localStorage.setItem("contacts", JSON.stringify([toni]));
@@ -47,6 +48,9 @@ const Chat = () => {
     const [isFetchingResponse, setIsFetchingResponse] = useState(false);
     const [messageText, setMessageText] = useState("");
     const [showContactsModal, setShowContactsModal] = useState(false);
+    const [showAboutModal, setShowAboutModal] = useState(false);
+    const [showDeleteContactModal, setShowDeleteContactModal] = useState(false);
+    const [showShareModal, setShowShareModal] = useState(false);
     const [newContact, setNewContact] = useState("");
 
     // update local storage every time contacts or currentContact changes
@@ -96,6 +100,10 @@ const Chat = () => {
         localStorage.setItem("currentContact", currentContact - 1);
       }
     };
+
+    const handleShareClick = () => {
+      setShowShareModal(true);
+    };    
     
     const handleNewContact = async (newContactName) => {
         const name = newContactName.trim();
@@ -176,6 +184,7 @@ const Chat = () => {
       setMessageCount(messageCount + 1);
       setContacts(updatedContacts);
       setCurrentContact(newCurrentContactIndex);
+      inputRef.current.focus();
     };
     
   const renderLoadingIndicator = () => {
@@ -302,6 +311,7 @@ const Chat = () => {
             }}
           />
           <input
+            ref={inputRef}
             type="text"
             className="form-control form-control-lg"
             id="exampleFormControlInput2"
@@ -335,8 +345,22 @@ const Chat = () => {
   };  
 
 // Mobile view for contacts button
-const renderMobileContactsSection = () => {
+const renderMobileContactsSection = (contactsShareName) => {
+  
+  // Add a handler function for the delete contact button
+  const handleRemoveContactButton = () => {
+    handleDeleteContact(currentContact);
+    setShowDeleteContactModal(false);
+  };
+
+  const renderShareModal = () => {
+
     const shareUrl = `${window.location.origin}/chat/${contacts[currentContact].name.replace(/ /g, "_")}`;
+
+    const handleCopyClick = () => {
+      copyToClipboard(shareUrl);
+      setShowShareModal(false);
+    };
 
     const copyToClipboard = (text) => {
       const element = document.createElement("textarea");
@@ -349,12 +373,54 @@ const renderMobileContactsSection = () => {
       document.execCommand("copy");
       document.body.removeChild(element);
     };    
-  
-    const handleShareClick = () => {
-      copyToClipboard(shareUrl);
-      alert(`URL copied to clipboard: ${shareUrl}`);
+
+      return (
+        <Modal show={showShareModal} onHide={() => setShowShareModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Share on Social Media</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>Share this contact on your favorite social media platforms:</p>
+          <ButtonToolbar>
+          <Button variant="outline-secondary" onClick={handleCopyClick}>
+              <Clipboard  size={24} /> Copy Link
+            </Button>
+            <Button
+              variant="outline-primary"
+              onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, "_blank")}
+            >
+              <Facebook size={24} /> Facebook
+            </Button>
+            <Button
+              variant="outline-info"
+              onClick={() => window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}`, "_blank")}
+            >
+              <Twitter size={24} /> Twitter
+            </Button>
+            <Button
+              variant="outline-secondary"
+              onClick={() => window.open(`https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(shareUrl)}`, "_blank")}
+            >
+              <BriefcaseFill size={24} /> LinkedIn
+            </Button>
+            <Button
+              variant="outline-danger"
+              onClick={() => window.open(`https://www.instagram.com/`, "_blank")}
+            >
+              <Instagram size={24} /> Instagram
+            </Button>
+            <Button 
+              variant="outline-secondary" 
+              onClick={() => window.open(`http://pinterest.com/pin/create/button/?url=${encodeURIComponent(shareUrl)}`)}
+            >
+              <Pinterest size={24} /> Pinterest
+            </Button>
+          </ButtonToolbar>
+        </Modal.Body>
+      </Modal>
+      );
     };
-  
+
     return (
       <>
         <div
@@ -380,16 +446,57 @@ const renderMobileContactsSection = () => {
             </Button>
             <h6 className="mb-0">{contacts[currentContact].name}</h6>
           </div>
-          <Button
-            variant="outline-secondary"
-            onClick={handleShareClick}
-          >
-            <Share size={24} />
-          </Button>
+          <div>
+            <Dropdown>
+              <Dropdown.Toggle variant="outline-secondary" id="dropdown-basic">
+                <ThreeDotsVertical size={24} />
+              </Dropdown.Toggle>
+
+              <Dropdown.Menu>
+                <Dropdown.Item onClick={handleShareClick}>Share</Dropdown.Item>
+                <Dropdown.Item onClick={() => setShowAboutModal(true)}>About</Dropdown.Item>
+                <Dropdown.Item onClick={() => setShowDeleteContactModal(true)}>Delete Contact</Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
+          </div>
         </div>
+
+        {/* About Modal */}
+        <Modal show={showAboutModal} onHide={() => setShowAboutModal(false)}>
+          <Modal.Header closeButton>
+            <Modal.Title>About</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <AboutInfo/>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowAboutModal(false)}>
+              Close
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
+        {/* Delete Contact Confirmation Modal */}
+        <Modal show={showDeleteContactModal} onHide={() => setShowDeleteContactModal(false)}>
+          <Modal.Header closeButton>
+            <Modal.Title>Delete Contact</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>Are you sure you want to delete this contact?</Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowDeleteContactModal(false)}>
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={handleRemoveContactButton}>
+              Delete
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
+        {/* Share Modal */}
+        {renderShareModal()}
       </>
     );
-  };  
+  };
 
   const renderContactsModal = () => {
     return (
@@ -506,6 +613,7 @@ const renderMobileContactsSection = () => {
               }}
             />
             <input
+              ref={inputRef}
               type="text"
               className="form-control form-control-lg small-text-on-mobile"
               id="exampleFormControlInput2"
