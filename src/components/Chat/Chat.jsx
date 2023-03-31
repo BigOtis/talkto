@@ -135,6 +135,7 @@ const Chat = () => {
     };
 
     const handleSendMessage = async (event) => {
+      inputRef.current.focus();
       // Get the current contact and append the user's message to its message list
       const userMessage = {
         message: event.target.value,
@@ -184,7 +185,6 @@ const Chat = () => {
       setMessageCount(messageCount + 1);
       setContacts(updatedContacts);
       setCurrentContact(newCurrentContactIndex);
-      inputRef.current.focus();
     };
     
   const renderLoadingIndicator = () => {
