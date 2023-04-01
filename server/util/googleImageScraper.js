@@ -4,7 +4,7 @@ const searchGoogleImages = async (searchTerm) => {
     // load the api key from the environment variables
     const apiKey = process.env.GOOGLE_IMAGE_KEY;
     const cx = "b0b624769748b4791";
-    const apiUrl = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=${searchTerm} portrait&searchType=image&num=1`;
+    const apiUrl = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=${searchTerm} wikipedia&searchType=image&num=1`;
   
     try {
       const response = await fetch(apiUrl);

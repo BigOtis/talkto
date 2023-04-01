@@ -4,7 +4,7 @@ import Chat from '../components/Chat/Chat'
 const Home = () => {
   return (
     <div>
-      <Meta title={"Talk To AI"}/>
+      <Meta title={"OtisFuse Chat"}/>
       <Chat></Chat>
     </div>
   )
