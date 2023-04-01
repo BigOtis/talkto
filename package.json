@@ -27,6 +27,7 @@
     "react-use": "^17.4.0",
     "react-virtualized-auto-sizer": "^1.0.7",
     "react-window": "^1.8.8",
+    "use-sticky-state": "^1.0.3",
     "web-vitals": "^3.3.0"
   },
   "scripts": {

@@ -1,8 +1,9 @@
-import React from "react";
-import Message from "./Message";
-import Contact from "./Contact";
-import { useState, useEffect, useRef } from "react";
-import fetchChatResponse from "../../utils/chatAPI";
+// React components
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams } from 'react-router-dom';
+import { FixedSizeList as List } from 'react-window';
+import AutoSizer from 'react-virtualized-auto-sizer';
+import MediaQuery from 'react-responsive';
 import {
   Modal,
   Button,
@@ -10,11 +11,11 @@ import {
   Row,
   Col,
   Image,
-  Spinner,
   Form,
   Dropdown,
   ButtonToolbar,
-} from "react-bootstrap";
+  Spinner,
+} from 'react-bootstrap';
 import {
   ArrowRight,
   PersonPlus,
@@ -26,14 +27,22 @@ import {
   Instagram,
   Clipboard,
   Pinterest,
-} from "react-bootstrap-icons";
-import userAvatar from "../../img/avatar2.png";
-import { FixedSizeList as List } from "react-window";
-import AutoSizer from "react-virtualized-auto-sizer";
-import MediaQuery from "react-responsive";
-import { useParams } from "react-router-dom";
-import AboutInfo from "../AboutInfo";
-import "./chat.css";
+} from 'react-bootstrap-icons';
+
+// Custom components
+import Message from './Message';
+import Contact from './Contact';
+import AboutInfo from '../AboutInfo';
+import AvatarModal from './AvatarModal';
+
+// Utils
+import fetchChatResponse from '../../utils/chatAPI';
+
+// Assets
+import userAvatar from '../../img/avatar2.png';
+
+// Styles
+import './chat.css';
 
 const Chat = () => {
   let { name } = useParams();
@@ -44,7 +53,7 @@ const Chat = () => {
     messages: [
       {
         message:
-          "Welcome to OtisFuse AI Chat, where you can talk to any character or historical you can imagine. Just type any name you want to chat with in the new conversation area to create a new character to chat with. Let me know if you have any questions or if you want me to suggest some famous characters for you to chat with. Remember, all conversations are purely fictional in nature.",
+          "Welcome to OtisFuse AI Chat, where you can talk to any character or historical figure you can imagine. Just type any name you want to chat with in the new conversation area to create a new character to chat with. Let me know if you have any questions or if you want me to suggest some famous characters for you to chat with. Remember, all conversations are purely fictional in nature.",
         time: getDateTimeString(),
         isUser: false,
       },
@@ -77,6 +86,7 @@ const Chat = () => {
   const [showAboutModal, setShowAboutModal] = useState(false);
   const [showDeleteContactModal, setShowDeleteContactModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [newContact, setNewContact] = useState("");
 
   // update local storage every time contacts or currentContact changes
@@ -356,6 +366,7 @@ const Chat = () => {
         <div className="text-muted d-flex justify-content-start align-items-center pe-3 pt-3 mt-2">
           <Image
             src={userAvatar}
+            onClick={() => {setShowAvatarModal(true)}}
             roundedCircle
             style={{
               width: "50px",
@@ -702,6 +713,7 @@ const Chat = () => {
           <div className="text-muted d-flex justify-content-center align-items-center pt-3">
             <Image
               src={userAvatar}
+              onClick={setShowAvatarModal(true)}
               roundedCircle
               style={{
                 width: "50px",
@@ -775,6 +787,9 @@ const Chat = () => {
         </Col>
       </Row>
       {renderContactsModal()}
+      <AvatarModal 
+        setShowAvatarModal={setShowAvatarModal}
+        showAvatarModal={showAvatarModal}/>
     </Container>
   );
 };
