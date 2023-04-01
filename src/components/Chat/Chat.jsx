@@ -713,7 +713,7 @@ const Chat = () => {
           <div className="text-muted d-flex justify-content-center align-items-center pt-3">
             <Image
               src={userAvatar}
-              onClick={setShowAvatarModal(true)}
+              onClick={() => {setShowAvatarModal(true)}}
               roundedCircle
               style={{
                 width: "50px",
