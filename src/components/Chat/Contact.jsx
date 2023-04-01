@@ -2,7 +2,13 @@ import React from "react";
 import { Image } from "react-bootstrap";
 import { FiTrash2, FiShare } from "react-icons/fi";
 
-const Contact = ({ person, handleContactClick, handleDeleteContact, index, currentContact }) => {
+const Contact = ({
+  person,
+  handleContactClick,
+  handleDeleteContact,
+  index,
+  currentContact,
+}) => {
   const lastMessage = person.messages[person.messages.length - 1].message;
 
   // if the last message is too long, truncate it
@@ -11,7 +17,10 @@ const Contact = ({ person, handleContactClick, handleDeleteContact, index, curre
     lastMessageTruncated = lastMessage.substring(0, 75) + "...";
   }
 
-  const shareUrl = `${window.location.origin}/chat/${person.name.replace(/ /g, "_")}`;
+  const shareUrl = `${window.location.origin}/chat/${person.name.replace(
+    / /g,
+    "_"
+  )}`;
 
   const handleShareClick = () => {
     copyToClipboard(shareUrl);
@@ -28,12 +37,15 @@ const Contact = ({ person, handleContactClick, handleDeleteContact, index, curre
     element.select();
     document.execCommand("copy");
     document.body.removeChild(element);
-  };  
+  };
 
   return (
     <li className="p-2 border-bottom">
       <div className="d-flex justify-content-between">
-        <div className="d-flex flex-row" onClick={() => handleContactClick(index)}>
+        <div
+          className="d-flex flex-row"
+          onClick={() => handleContactClick(index)}
+        >
           <div>
             <Image
               src={person.avatar}
@@ -49,7 +61,9 @@ const Contact = ({ person, handleContactClick, handleDeleteContact, index, curre
             <span className="badge bg-success badge-dot"></span>
           </div>
           <div className="pt-1 small-text-on-mobile">
-            <p className="fw-bold mb-0"><u>{person.name}</u></p>
+            <p className="fw-bold mb-0">
+              <u>{person.name}</u>
+            </p>
             <p className="small text-muted">{lastMessageTruncated}</p>
           </div>
         </div>

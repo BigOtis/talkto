@@ -22,7 +22,12 @@ const Message = ({ message, person, time, isUser }) => {
           <Image
             src={userAvatar}
             roundedCircle
-            style={{ width: "60px", height: "60px", padding: "2px", border: "1px solid #000"}}
+            style={{
+              width: "60px",
+              height: "60px",
+              padding: "2px",
+              border: "1px solid #000",
+            }}
           />
         </div>
         <div>
@@ -45,7 +50,12 @@ const Message = ({ message, person, time, isUser }) => {
           <Image
             src={person.avatar}
             roundedCircle
-            style={{ width: "60px", height: "60px", padding: "2px", border: "1px solid #000"}}
+            style={{
+              width: "60px",
+              height: "60px",
+              padding: "2px",
+              border: "1px solid #000",
+            }}
           />
         </div>
         <div>
