@@ -336,7 +336,7 @@ const Chat = () => {
           className="messages-section"
           style={{
             width: "100%",
-            height: "calc(100vh - 200px)",
+            height: "calc(100vh - 100px)",
             overflowY: "auto",
             paddingRight: "1rem",
           }}
