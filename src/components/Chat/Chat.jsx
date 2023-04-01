@@ -44,7 +44,7 @@ const Chat = () => {
     messages: [
       {
         message:
-          "Welcome to OtisFuse AI Chat, where you can talk to any character you can imagine. Just type any name you want to chat with in the new conversation area to create a new character to chat with. Let me know if you have any questions or if you want me to suggest some famous characters for you to chat with. Remember, all conversations are purely fictional in nature.",
+          "Welcome to OtisFuse AI Chat, where you can talk to any character or historical you can imagine. Just type any name you want to chat with in the new conversation area to create a new character to chat with. Let me know if you have any questions or if you want me to suggest some famous characters for you to chat with. Remember, all conversations are purely fictional in nature.",
         time: getDateTimeString(),
         isUser: false,
       },
