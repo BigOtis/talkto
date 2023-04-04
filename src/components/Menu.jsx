@@ -23,20 +23,25 @@ const Menu = () => {
             <ul className="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
               <li>
                 <Link to="/" className="nav-link px-2 link-secondary">
-                <ChatDots className="me-1" />
-                  Chat
-                </Link>
+                  <b>
+                  <ChatDots className="me-1" />
+                    Chat
+                  </b>
+                  </Link>
               </li>
             </ul>
             <ul className="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
               <li>
                 <Link to="/about" className="nav-link px-2 link-secondary">
+                <b>
                 <InfoCircle className="me-1" />
                   About
+                </b>
                 </Link>
               </li>
             </ul>
           </Nav>
+          <hr style={{ borderTop: "1px solid black", width: "100%" }} />
         </header>
       )}
     </Container>
