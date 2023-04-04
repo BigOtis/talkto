@@ -41,6 +41,7 @@ import fetchChatResponse from '../../utils/chatAPI';
 
 // Assets
 import userAvatarImg from '../../img/avatar2.png';
+import helperAvatar from '../../img/helper.jpg';
 
 // Styles
 import './chat.css';
@@ -49,7 +50,7 @@ const Chat = () => {
   let { name } = useParams();
 
   const toni = {
-    avatar: "https://th.bing.com/th/id/OIG.SH7.u10w3N.sMfZ.6X8t?pid=ImgGn",
+    avatar: helperAvatar,
     name: "OtisFuse AI Helper",
     messages: [
       {
