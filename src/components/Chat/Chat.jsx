@@ -40,7 +40,7 @@ import useStickyState from 'use-sticky-state';
 import fetchChatResponse from '../../utils/chatAPI';
 
 // Assets
-import userAvatar from '../../img/avatar2.png';
+import userAvatarImg from '../../img/avatar2.png';
 
 // Styles
 import './chat.css';
@@ -75,6 +75,7 @@ const Chat = () => {
   const [showShareModal, setShowShareModal] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [newContact, setNewContact] = useState("");
+  const [userAvatar, setUserAvatar] = useStickyState(userAvatarImg, "userAvatar");
 
   useEffect(() => {
     console.log("deletedContacts changed");
@@ -690,7 +691,7 @@ const Chat = () => {
         >
           <div className="text-muted d-flex justify-content-center align-items-center pt-3">
             <Image
-              src={userAvatar}
+              src={userAvatarImg}
               onClick={() => {setShowAvatarModal(true)}}
               roundedCircle
               style={{
@@ -766,8 +767,10 @@ const Chat = () => {
       </Row>
       {renderContactsModal()}
       <AvatarModal 
+        avatar={userAvatar}
         setShowAvatarModal={setShowAvatarModal}
-        showAvatarModal={showAvatarModal}/>
+        showAvatarModal={showAvatarModal}
+        onAvatarChange={setUserAvatar}/>
     </Container>
   );
 };

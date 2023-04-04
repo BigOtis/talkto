@@ -20,7 +20,6 @@ const AvatarModal = ({ avatar, onAvatarChange, showAvatarModal, setShowAvatarMod
       const reader = new FileReader();
       reader.onload = (event) => {
         const imageData = event.target.result;
-        localStorage.setItem("avatar", imageData);
         onAvatarChange(imageData);
       };
       reader.readAsDataURL(file);
