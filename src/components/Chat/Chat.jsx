@@ -34,6 +34,7 @@ import Message from './Message';
 import Contact from './Contact';
 import AboutInfo from '../AboutInfo';
 import AvatarModal from './AvatarModal';
+import useStickyState from 'use-sticky-state';
 
 // Utils
 import fetchChatResponse from '../../utils/chatAPI';
@@ -61,24 +62,10 @@ const Chat = () => {
   };
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
-  // if local storage is undefined, initialize it
-  if (localStorage.getItem("contacts") === null) {
-    localStorage.setItem("contacts", JSON.stringify([toni]));
-  }
-  if (localStorage.getItem("currentContact") === null) {
-    localStorage.setItem("currentContact", 0);
-  }
-  if (localStorage.getItem("deletedContacts") === null) {
-    localStorage.setItem("deletedContacts", JSON.stringify([]));
-  }
+  const [contacts, setContacts] = useStickyState([toni], "contacts");
+  const [currentContact, setCurrentContact] = useStickyState(0, "currentContact");
+  const [deletedContacts, setDeletedContacts] = useStickyState([], "deletedContacts");
 
-  // load contacts and currentContact from local storage
-  const [contacts, setContacts] = useState(
-    JSON.parse(localStorage.getItem("contacts"))
-  );
-  const [currentContact, setCurrentContact] = useState(
-    localStorage.getItem("currentContact")
-  );
   const [messageCount, setMessageCount] = useState(0);
   const [isFetchingResponse, setIsFetchingResponse] = useState(false);
   const [messageText, setMessageText] = useState("");
@@ -89,10 +76,13 @@ const Chat = () => {
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [newContact, setNewContact] = useState("");
 
+  useEffect(() => {
+    console.log("deletedContacts changed");
+    console.log(deletedContacts);
+  }, [deletedContacts]);
+
   // update local storage every time contacts or currentContact changes
   useEffect(() => {
-    localStorage.setItem("contacts", JSON.stringify(contacts));
-    localStorage.setItem("currentContact", currentContact);
     scrollToBottom();
   }, [contacts, currentContact, messageCount]);
 
@@ -123,22 +113,18 @@ const Chat = () => {
     }
     const newContacts = [...contacts];
     const deletedContact = newContacts.splice(index, 1)[0];
-    setContacts(newContacts);
-    localStorage.setItem("contacts", JSON.stringify(newContacts));
 
     // Move deleted contact to deletedContacts array
-    const deletedContacts = JSON.parse(localStorage.getItem("deletedContacts"));
-    localStorage.setItem(
-      "deletedContacts",
-      JSON.stringify([...deletedContacts, deletedContact])
-    );
+    const newDeleted = [...deletedContacts, deletedContact];
+    console.log(newDeleted);
 
+    setContacts(newContacts);
+    setDeletedContacts(newDeleted);
+   
     if (index === currentContact) {
       setCurrentContact(0);
-      localStorage.setItem("currentContact", 0);
     } else if (index < currentContact) {
       setCurrentContact(currentContact - 1);
-      localStorage.setItem("currentContact", currentContact - 1);
     }
   };
 
@@ -147,20 +133,17 @@ const Chat = () => {
   };
 
   const handleNewContact = async (newContactName) => {
+    console.log("handleNewCoontact:");
+    console.log(deletedContacts);
     const name = newContactName.trim();
     if (name) {
       const avatarUrl = await fetchImageUrl(name);
-      const deletedContacts =
-        JSON.parse(localStorage.getItem("deletedContacts")) || [];
       const existingContact = deletedContacts.find((c) => c.name === name);
       let newContact = null;
       if (existingContact) {
         newContact = existingContact;
         deletedContacts.splice(deletedContacts.indexOf(existingContact), 1);
-        localStorage.setItem(
-          "deletedContacts",
-          JSON.stringify(deletedContacts)
-        );
+        setDeletedContacts([...deletedContacts]);
       } else {
         newContact = {
           avatar: avatarUrl || "https://via.placeholder.com/150",
@@ -306,11 +289,6 @@ const Chat = () => {
                 placeholder="Type any name to start..."
                 value={newContact}
                 onChange={(e) => setNewContact(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.keyCode === 13) {
-                    handleNewContact(newContact);
-                  }
-                }}
               />
               <Button variant="primary" type="submit" className="border-0 ms-2">
                 <PersonPlus size={24} />
