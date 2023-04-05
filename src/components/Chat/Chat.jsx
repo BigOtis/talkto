@@ -37,7 +37,7 @@ import AvatarModal from './AvatarModal';
 import useStickyState from 'use-sticky-state';
 
 // Utils
-import fetchChatResponse from '../../utils/chatAPI';
+import { fetchChatResponse, fetchGreetings } from '../../utils/chatAPI';
 
 // Assets
 import userAvatarImg from '../../img/avatar2.png';
@@ -118,7 +118,6 @@ const Chat = () => {
 
     // Move deleted contact to deletedContacts array
     const newDeleted = [...deletedContacts, deletedContact];
-    console.log(newDeleted);
 
     setContacts(newContacts);
     setDeletedContacts(newDeleted);
@@ -135,8 +134,6 @@ const Chat = () => {
   };
 
   const handleNewContact = async (newContactName) => {
-    console.log("handleNewCoontact:");
-    console.log(deletedContacts);
     const name = newContactName.trim();
     if (name) {
       const avatarUrl = await fetchImageUrl(name);
@@ -147,12 +144,17 @@ const Chat = () => {
         deletedContacts.splice(deletedContacts.indexOf(existingContact), 1);
         setDeletedContacts([...deletedContacts]);
       } else {
+        let message = await fetchGreetings(newContactName);
+        // if the message is undefined, set it to a default message
+        if (!message) {
+          message = `Hello... you've reached ${name}.`;
+        }
         newContact = {
           avatar: avatarUrl || "https://via.placeholder.com/150",
           name: name,
           messages: [
             {
-              message: `Hello... you've reached ${name}.`,
+              message: message,
               time: getDateTimeString(),
               isUser: false,
             },
@@ -331,6 +333,13 @@ const Chat = () => {
             paddingRight: "1rem",
           }}
         >
+          <Message
+              key={0}
+              message={`Remember, this conversation is purely fictional and does not reflect the views of any real person or organization. Enjoy your chat with ${contacts[currentContact].name}!`}
+              person={toni}
+              isUser={false}
+              time={""}
+            />
           {contacts[currentContact].messages.map((msg, index) => (
             <Message
               key={index}
@@ -670,6 +679,13 @@ const Chat = () => {
             marginBottom: "60px", // Add margin to the bottom to avoid overlapping with the input
           }}
         >
+          <Message
+            key={0}
+            message={`Remember, this conversation is purely fictional and does not reflect the views of any real person or organization. Enjoy your chat with ${contacts[currentContact].name}!`}
+            person={toni}
+            isUser={false}
+            time={""}
+          />
           {contacts[currentContact].messages.map((msg, index) => (
             <Message
               key={index}

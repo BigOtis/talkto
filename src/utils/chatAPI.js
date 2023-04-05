@@ -23,4 +23,23 @@ const fetchChatResponse = async (contact, messages) => {
   }
 };
 
-export default fetchChatResponse;
+const fetchGreetings = async (name) => {
+  // Fetch the greeting from the API
+  const response = await fetch("/api/getGreeting", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ name }),
+  });
+
+  const data = await response.json();
+  const message = data.message;
+  // if the message contains the error message, return a default greeting
+  if (message.includes("An error occurred")) {
+    return undefined;
+  }
+  return data.message;
+};
+
+export { fetchChatResponse, fetchGreetings };

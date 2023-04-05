@@ -9,6 +9,7 @@ router.get('/', (req, res) => {
 
 router.post('/getImage', scontroller.searchForImageUrl);
 router.post('/getChat', ccontroller.getChatMessage);
+router.post('/getGreeting', ccontroller.generateGreeting);
 router.post('/getHelper', ccontroller.getHelperMessage);
 
 module.exports = router;

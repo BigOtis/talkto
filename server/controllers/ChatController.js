@@ -86,6 +86,35 @@ const generateChatResponse = async (contact, messages) => {
   return completion.data.choices[0].message.content.trim();
 };
 
+exports.generateGreeting = async (req, res) => {
+  try {
+    const { name } = req.body;
+
+    formattedMessages = [
+      {
+        role: "system",
+        content: `The person you are chatting with is a fan of ${name}. Pretend to be ${name} and respond in character, drawing upon the knowledge you have about ${name} to make the conversation engaging and realistic. 
+        Talk the same way ${name} would talk copying any mannerisms, slang, or other characteristics that make ${name} unique. 
+        Start by saying hello to the user in your own way.`,
+      },
+    ]
+
+    const completion = await openai.createChatCompletion({
+      model: "gpt-3.5-turbo",
+      messages: formattedMessages,
+    });
+
+    res.json({ message: completion.data.choices[0].message.content.trim() });
+  } catch (e) {
+    console.log(e);
+    res.json({
+      message:
+        "An error occurred generating your chat response. Please try again later. " +
+        e,
+    });
+  }
+};
+
 exports.getChatMessage = async (req, res) => {
   try {
     const { contact, messages } = req.body;
