@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import { FixedSizeList as List } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import MediaQuery from 'react-responsive';
+
 import {
   Modal,
   Button,
@@ -169,8 +170,11 @@ const Chat = () => {
       setCurrentContact(0);
       setNewContact("");
       setIsFetchingContact(false);
-    }
-  };
+  }
+  else{
+    setIsFetchingContact(false);
+  }
+};
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -319,7 +323,7 @@ const Chat = () => {
           {renderContactsLoading()}
           <div
             className="contacts-section"
-            style={{ height: "calc(100vh - 300px)" }}
+            style={{ height: "calc(100vh - 200px)" }}
           >
             <AutoSizer>
               {({ width, height }) => (
@@ -346,7 +350,7 @@ const Chat = () => {
           className="messages-section d-flex flex-column"
           style={{
             width: "100%",
-            height: "calc(100vh - 250px)",
+            height: "calc(100vh - 200px)",
             overflowY: "auto",
             paddingRight: "1rem",
           }}

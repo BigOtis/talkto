@@ -6,7 +6,7 @@ import { useMediaQuery } from 'react-responsive';
 import {ChatDots, InfoCircle} from 'react-bootstrap-icons';
 
 const Menu = () => {
-  const isDesktop = useMediaQuery({ minWidth: 992 });
+  const isDesktop = useMediaQuery({ minWidth: 767 });
 
   return (
     <Container>
@@ -41,7 +41,6 @@ const Menu = () => {
               </li>
             </ul>
           </Nav>
-          <hr style={{ borderTop: "1px solid black", width: "100%" }} />
         </header>
       )}
     </Container>
