@@ -9,7 +9,7 @@ const About = () => {
 
   return (
     <div>
-      <Meta title={pageTitle}/>
+        
       <Header head={pageTitle} description={pageDescription} />
       <hr />
       <AboutInfo />
