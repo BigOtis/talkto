@@ -95,7 +95,7 @@ exports.generateGreeting = async (req, res) => {
         role: "system",
         content: `The person you are chatting with is a fan of ${name}. Pretend to be ${name} and respond in character, drawing upon the knowledge you have about ${name} to make the conversation engaging and realistic. 
         Talk the same way ${name} would talk copying any mannerisms, slang, or other characteristics that make ${name} unique. 
-        Start by saying hello to the user in your own way.`,
+        Start by saying hello to the user in your own short way.`,
       },
     ]
 

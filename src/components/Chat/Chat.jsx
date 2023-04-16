@@ -45,6 +45,7 @@ import helperAvatar from '../../img/helper.jpg';
 
 // Styles
 import './chat.css';
+import '../../index.css';
 
 const Chat = () => {
   let { name } = useParams();
@@ -69,6 +70,7 @@ const Chat = () => {
 
   const [messageCount, setMessageCount] = useState(0);
   const [isFetchingResponse, setIsFetchingResponse] = useState(false);
+  const [isFetchingContact, setIsFetchingContact] = useState(false);
   const [messageText, setMessageText] = useState("");
   const [showContactsModal, setShowContactsModal] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
@@ -134,6 +136,7 @@ const Chat = () => {
   };
 
   const handleNewContact = async (newContactName) => {
+    setIsFetchingContact(true);
     const name = newContactName.trim();
     if (name) {
       const avatarUrl = await fetchImageUrl(name);
@@ -165,6 +168,7 @@ const Chat = () => {
       setContacts(updatedContacts);
       setCurrentContact(0);
       setNewContact("");
+      setIsFetchingContact(false);
     }
   };
 
@@ -248,6 +252,19 @@ const Chat = () => {
     return null;
   };
 
+  const renderContactsLoading = () => {
+    if (isFetchingContact) {
+      return (
+        <div className="d-flex justify-content-center mt-3">
+          <Spinner animation="grow" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </Spinner>
+        </div>
+      );
+    }
+    return null;
+  };
+
   const contactRenderer = ({ index, style }) => {
     const person = contacts[index];
     return (
@@ -299,6 +316,7 @@ const Chat = () => {
               </Button>
             </Form.Group>
           </Form>
+          {renderContactsLoading()}
           <div
             className="contacts-section"
             style={{ height: "calc(100vh - 300px)" }}
@@ -325,14 +343,15 @@ const Chat = () => {
     return (
       <Col md="6" lg="7" xl="8">
         <div
-          className="messages-section"
+          className="messages-section d-flex flex-column"
           style={{
             width: "100%",
-            height: "calc(100vh - 100px)",
+            height: "calc(100vh - 250px)",
             overflowY: "auto",
             paddingRight: "1rem",
           }}
         >
+          <div className="mt-auto">
           <Message
               key={0}
               message={`Remember, this conversation is purely fictional and does not reflect the views of any real person or organization. Enjoy your chat with ${contacts[currentContact].name}!`}
@@ -347,9 +366,11 @@ const Chat = () => {
               person={contacts[currentContact]}
               isUser={msg.isUser}
               time={msg.time}
+              userAvatar={userAvatar}
             />
           ))}
           {renderLoadingIndicator()}
+          </div>
           <div ref={messagesEndRef} />
         </div>
         <div className="text-muted d-flex justify-content-start align-items-center pe-3 pt-3 mt-2">
@@ -407,7 +428,7 @@ const Chat = () => {
     };
 
     const renderShareModal = () => {
-      const shareUrl = `${window.location.origin}/chat/${contacts[
+      const shareUrl = `${window.location.origin}/redirect/${contacts[
         currentContact
       ].name.replace(/ /g, "_")}`;
 
@@ -528,6 +549,7 @@ const Chat = () => {
               <ChatSquareDotsFill size={24} />
             </Button>
             <h6 className="mb-0">{contacts[currentContact].name}</h6>
+            {renderContactsLoading()}
           </div>
           <div>
             <Dropdown>
@@ -669,7 +691,7 @@ const Chat = () => {
     return (
       <>
         <div
-          className="messages-section"
+           className="messages-section d-flex flex-column"
           style={{
             width: "100%",
             height: "calc(100vh - 50px)",
@@ -679,24 +701,27 @@ const Chat = () => {
             marginBottom: "60px", // Add margin to the bottom to avoid overlapping with the input
           }}
         >
-          <Message
-            key={0}
-            message={`Remember, this conversation is purely fictional and does not reflect the views of any real person or organization. Enjoy your chat with ${contacts[currentContact].name}!`}
-            person={toni}
-            isUser={false}
-            time={""}
-          />
-          {contacts[currentContact].messages.map((msg, index) => (
+          <div className="mt-auto">
             <Message
-              key={index}
-              message={msg.message}
-              person={contacts[currentContact]}
-              isUser={msg.isUser}
-              time={msg.time}
+              key={0}
+              message={`Remember, this conversation is purely fictional and does not reflect the views of any real person or organization. Enjoy your chat with ${contacts[currentContact].name}!`}
+              person={toni}
+              isUser={false}
+              time={""}
             />
-          ))}
-          <div ref={messagesEndRef} />
-          {renderLoadingIndicator()}
+            {contacts[currentContact].messages.map((msg, index) => (
+              <Message
+                key={index}
+                message={msg.message}
+                person={contacts[currentContact]}
+                isUser={msg.isUser}
+                time={msg.time}
+                userAvatar={userAvatar}
+              />
+            ))}
+            <div ref={messagesEndRef} />
+            {renderLoadingIndicator()}
+          </div>
         </div>
         <div
           className="fixed-bottom"
@@ -754,10 +779,11 @@ const Chat = () => {
   };
 
   return (
+    
     <Container
       fluid
-      className="py-2"
-      style={{ height: "100vh", maxHeight: "100vh", overflow: "hidden" }}
+      className="py-0"
+      style={{ height: "100vh", maxHeight: "99vh", overflow: "hidden" }}
     >
       <Row>
         <Col xs={12}>

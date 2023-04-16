@@ -8,8 +8,8 @@ import Layout from "./layout/Layout";
 import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
 import About from "./pages/About";
-import './custom.css';
-
+import './index.css';
+import CharacterRedirect from "./pages/CharacterRedirect";
 
 const App = () => {
   return (
@@ -19,6 +19,7 @@ const App = () => {
         <Route path="/" element={<Home />} exact />
           <Route path="/about" element={<About />} />
           <Route path="/chat/:name" element={<Home />} />
+          <Route path="/redirect/:name" element={<CharacterRedirect />} />
           <Route path='*' element={<NotFound />} />
         </Routes>
       </Container>

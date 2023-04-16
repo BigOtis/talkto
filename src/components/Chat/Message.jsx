@@ -1,8 +1,7 @@
 import React from "react";
 import { Image } from "react-bootstrap";
-import userAvatar from "../../img/avatar2.png";
 
-const Message = ({ message, person, time, isUser }) => {
+const Message = ({ message, person, time, isUser, userAvatar }) => {
   const convertNamesToLinks = (messageText) => {
     const urlPrefix = `${window.location.origin}/chat/`;
     const nameTagRegex = /<name>(.+?)<\/name>/g;
@@ -32,7 +31,7 @@ const Message = ({ message, person, time, isUser }) => {
         </div>
         <div>
           <p
-            className="small p-2 ms-3 mb-1 rounded-3 small-text-on-mobile"
+            className="small p-2 ms-3 mb-1 rounded-3 small-text-on-mobile border"
             style={{ backgroundColor: "#b3cee5" }}
           >
             {message}
@@ -60,7 +59,7 @@ const Message = ({ message, person, time, isUser }) => {
         </div>
         <div>
           <p
-            className="small p-2 ms-3 mb-1 rounded-3 small-text-on-mobile"
+            className="small p-2 ms-3 mb-1 rounded-3 small-text-on-mobile border"
             style={{ backgroundColor: "#f5f6f7" }}
             dangerouslySetInnerHTML={messageHtml}
           />
