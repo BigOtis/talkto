@@ -3,7 +3,7 @@ import { Image } from "react-bootstrap";
 
 const Message = ({ message, person, time, isUser, userAvatar }) => {
   const convertNamesToLinks = (messageText) => {
-    const urlPrefix = `${window.location.origin}/chat/`;
+    const urlPrefix = `${window.location.origin}/redirect/`;
     const nameTagRegex = /<name>(.+?)<\/name>/g;
 
     return messageText.replace(nameTagRegex, (_, name) => {
