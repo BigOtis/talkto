@@ -141,6 +141,10 @@ const Chat = () => {
     const name = newContactName.trim();
     if (name) {
       const avatarUrl = await fetchImageUrl(name);
+      if (avatarUrl) {
+        const cachedImg = new window.Image();
+        cachedImg.src = avatarUrl;
+      }
       const existingContact = deletedContacts.find((c) => c.name === name);
       let newContact = null;
       if (existingContact) {
@@ -209,7 +213,7 @@ const Chat = () => {
           contacts[currentContact],
           contacts[currentContact].messages
         ),
-        timeout(10000),
+        timeout(120000),
       ]);
 
       // Add the assistant's response to the messages array
