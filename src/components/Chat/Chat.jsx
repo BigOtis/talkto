@@ -34,6 +34,7 @@ import Message from './Message';
 import Contact from './Contact';
 import AboutInfo from '../AboutInfo';
 import AvatarModal from './AvatarModal';
+import DonationModal from './DonationModal';
 
 // Utils
 import fetchChatResponse from '../../utils/chatAPI';
@@ -88,6 +89,7 @@ const Chat = () => {
   const [showShareModal, setShowShareModal] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [newContact, setNewContact] = useState("");
+  const [showDonationModal, setShowDonationModal] = useState(false);
 
   // update local storage every time contacts or currentContact changes
   useEffect(() => {
@@ -178,6 +180,11 @@ const Chat = () => {
       setContacts(updatedContacts);
       setCurrentContact(0);
       setNewContact("");
+
+      // Check if number is divisible by 5 and show donation modal
+      if (contacts.length % 5 === 0 ) {
+        setShowDonationModal(true);
+      }
     }
   };
 
@@ -790,6 +797,11 @@ const Chat = () => {
       <AvatarModal 
         setShowAvatarModal={setShowAvatarModal}
         showAvatarModal={showAvatarModal}/>
+      <DonationModal 
+        showDonationModal={showDonationModal}
+        setShowDonationModal={setShowDonationModal}
+        paypalLink="https://www.paypal.com/your_link_here"
+      />
     </Container>
   );
 };
