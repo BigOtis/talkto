@@ -176,14 +176,13 @@ const Chat = () => {
       setCurrentContact(0);
       setNewContact("");
       setIsFetchingContact(false);
-  }
-  else{
-    setIsFetchingContact(false);
-
       // Check if number is divisible by 5 and show donation modal
       if (contacts.length % 5 === 0 ) {
         setShowDonationModal(true);
       }
+  }
+  else{
+    setIsFetchingContact(false);
   }
 };
 
