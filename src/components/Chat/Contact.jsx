@@ -17,7 +17,7 @@ const Contact = ({
     lastMessageTruncated = lastMessage.substring(0, 75) + "...";
   }
 
-  const shareUrl = `${window.location.origin}/chat/${person.name.replace(
+  const shareUrl = `${window.location.origin}/redirect/${person.name.replace(
     / /g,
     "_"
   )}`;

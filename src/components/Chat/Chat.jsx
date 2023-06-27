@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import { FixedSizeList as List } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import MediaQuery from 'react-responsive';
+
 import {
   Modal,
   Button,
@@ -34,22 +35,25 @@ import Message from './Message';
 import Contact from './Contact';
 import AboutInfo from '../AboutInfo';
 import AvatarModal from './AvatarModal';
+import useStickyState from 'use-sticky-state';
 import DonationModal from './DonationModal';
 
 // Utils
-import fetchChatResponse from '../../utils/chatAPI';
+import { fetchChatResponse, fetchGreetings } from '../../utils/chatAPI';
 
 // Assets
-import userAvatar from '../../img/avatar2.png';
+import userAvatarImg from '../../img/avatar2.png';
+import helperAvatar from '../../img/helper.jpg';
 
 // Styles
 import './chat.css';
+import '../../index.css';
 
 const Chat = () => {
   let { name } = useParams();
 
   const toni = {
-    avatar: "https://th.bing.com/th/id/OIG.SH7.u10w3N.sMfZ.6X8t?pid=ImgGn",
+    avatar: helperAvatar,
     name: "OtisFuse AI Helper",
     messages: [
       {
@@ -62,26 +66,13 @@ const Chat = () => {
   };
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
-  // if local storage is undefined, initialize it
-  if (localStorage.getItem("contacts") === null) {
-    localStorage.setItem("contacts", JSON.stringify([toni]));
-  }
-  if (localStorage.getItem("currentContact") === null) {
-    localStorage.setItem("currentContact", 0);
-  }
-  if (localStorage.getItem("deletedContacts") === null) {
-    localStorage.setItem("deletedContacts", JSON.stringify([]));
-  }
+  const [contacts, setContacts] = useStickyState([toni], "contacts");
+  const [currentContact, setCurrentContact] = useStickyState(0, "currentContact");
+  const [deletedContacts, setDeletedContacts] = useStickyState([], "deletedContacts");
 
-  // load contacts and currentContact from local storage
-  const [contacts, setContacts] = useState(
-    JSON.parse(localStorage.getItem("contacts"))
-  );
-  const [currentContact, setCurrentContact] = useState(
-    localStorage.getItem("currentContact")
-  );
   const [messageCount, setMessageCount] = useState(0);
   const [isFetchingResponse, setIsFetchingResponse] = useState(false);
+  const [isFetchingContact, setIsFetchingContact] = useState(false);
   const [messageText, setMessageText] = useState("");
   const [showContactsModal, setShowContactsModal] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
@@ -89,12 +80,16 @@ const Chat = () => {
   const [showShareModal, setShowShareModal] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [newContact, setNewContact] = useState("");
+  const [userAvatar, setUserAvatar] = useStickyState(userAvatarImg, "userAvatar");
+
+  useEffect(() => {
+    console.log("deletedContacts changed");
+    console.log(deletedContacts);
+  }, [deletedContacts]);
   const [showDonationModal, setShowDonationModal] = useState(false);
 
   // update local storage every time contacts or currentContact changes
   useEffect(() => {
-    localStorage.setItem("contacts", JSON.stringify(contacts));
-    localStorage.setItem("currentContact", currentContact);
     scrollToBottom();
   }, [contacts, currentContact, messageCount]);
 
@@ -125,22 +120,17 @@ const Chat = () => {
     }
     const newContacts = [...contacts];
     const deletedContact = newContacts.splice(index, 1)[0];
-    setContacts(newContacts);
-    localStorage.setItem("contacts", JSON.stringify(newContacts));
 
     // Move deleted contact to deletedContacts array
-    const deletedContacts = JSON.parse(localStorage.getItem("deletedContacts"));
-    localStorage.setItem(
-      "deletedContacts",
-      JSON.stringify([...deletedContacts, deletedContact])
-    );
+    const newDeleted = [...deletedContacts, deletedContact];
 
+    setContacts(newContacts);
+    setDeletedContacts(newDeleted);
+   
     if (index === currentContact) {
       setCurrentContact(0);
-      localStorage.setItem("currentContact", 0);
     } else if (index < currentContact) {
       setCurrentContact(currentContact - 1);
-      localStorage.setItem("currentContact", currentContact - 1);
     }
   };
 
@@ -149,27 +139,32 @@ const Chat = () => {
   };
 
   const handleNewContact = async (newContactName) => {
+    setIsFetchingContact(true);
     const name = newContactName.trim();
     if (name) {
       const avatarUrl = await fetchImageUrl(name);
-      const deletedContacts =
-        JSON.parse(localStorage.getItem("deletedContacts")) || [];
+      if (avatarUrl) {
+        const cachedImg = new window.Image();
+        cachedImg.src = avatarUrl;
+      }
       const existingContact = deletedContacts.find((c) => c.name === name);
       let newContact = null;
       if (existingContact) {
         newContact = existingContact;
         deletedContacts.splice(deletedContacts.indexOf(existingContact), 1);
-        localStorage.setItem(
-          "deletedContacts",
-          JSON.stringify(deletedContacts)
-        );
+        setDeletedContacts([...deletedContacts]);
       } else {
+        let message = await fetchGreetings(newContactName);
+        // if the message is undefined, set it to a default message
+        if (!message) {
+          message = `Hello... you've reached ${name}.`;
+        }
         newContact = {
           avatar: avatarUrl || "https://via.placeholder.com/150",
           name: name,
           messages: [
             {
-              message: `Hello... you've reached ${name}.`,
+              message: message,
               time: getDateTimeString(),
               isUser: false,
             },
@@ -180,13 +175,17 @@ const Chat = () => {
       setContacts(updatedContacts);
       setCurrentContact(0);
       setNewContact("");
+      setIsFetchingContact(false);
+  }
+  else{
+    setIsFetchingContact(false);
 
       // Check if number is divisible by 5 and show donation modal
       if (contacts.length % 5 === 0 ) {
         setShowDonationModal(true);
       }
-    }
-  };
+  }
+};
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -221,7 +220,7 @@ const Chat = () => {
           contacts[currentContact],
           contacts[currentContact].messages
         ),
-        timeout(10000),
+        timeout(120000),
       ]);
 
       // Add the assistant's response to the messages array
@@ -257,6 +256,19 @@ const Chat = () => {
 
   const renderLoadingIndicator = () => {
     if (isFetchingResponse) {
+      return (
+        <div className="d-flex justify-content-center mt-3">
+          <Spinner animation="grow" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </Spinner>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const renderContactsLoading = () => {
+    if (isFetchingContact) {
       return (
         <div className="d-flex justify-content-center mt-3">
           <Spinner animation="grow" role="status">
@@ -313,20 +325,16 @@ const Chat = () => {
                 placeholder="Type any name to start..."
                 value={newContact}
                 onChange={(e) => setNewContact(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.keyCode === 13) {
-                    handleNewContact(newContact);
-                  }
-                }}
               />
               <Button variant="primary" type="submit" className="border-0 ms-2">
                 <PersonPlus size={24} />
               </Button>
             </Form.Group>
           </Form>
+          {renderContactsLoading()}
           <div
             className="contacts-section"
-            style={{ height: "calc(100vh - 300px)" }}
+            style={{ height: "calc(100vh - 200px)" }}
           >
             <AutoSizer>
               {({ width, height }) => (
@@ -350,14 +358,22 @@ const Chat = () => {
     return (
       <Col md="6" lg="7" xl="8">
         <div
-          className="messages-section"
+          className="messages-section d-flex flex-column"
           style={{
             width: "100%",
-            height: "calc(100vh - 100px)",
+            height: "calc(100vh - 200px)",
             overflowY: "auto",
             paddingRight: "1rem",
           }}
         >
+          <div className="mt-auto">
+          <Message
+              key={0}
+              message={`Remember, this conversation is purely fictional and does not reflect the views of any real person or organization. Enjoy your chat with ${contacts[currentContact].name}!`}
+              person={toni}
+              isUser={false}
+              time={""}
+            />
           {contacts[currentContact].messages.map((msg, index) => (
             <Message
               key={index}
@@ -365,9 +381,11 @@ const Chat = () => {
               person={contacts[currentContact]}
               isUser={msg.isUser}
               time={msg.time}
+              userAvatar={userAvatar}
             />
           ))}
           {renderLoadingIndicator()}
+          </div>
           <div ref={messagesEndRef} />
         </div>
         <div className="text-muted d-flex justify-content-start align-items-center pe-3 pt-3 mt-2">
@@ -425,7 +443,7 @@ const Chat = () => {
     };
 
     const renderShareModal = () => {
-      const shareUrl = `${window.location.origin}/chat/${contacts[
+      const shareUrl = `${window.location.origin}/redirect/${contacts[
         currentContact
       ].name.replace(/ /g, "_")}`;
 
@@ -546,6 +564,7 @@ const Chat = () => {
               <ChatSquareDotsFill size={24} />
             </Button>
             <h6 className="mb-0">{contacts[currentContact].name}</h6>
+            {renderContactsLoading()}
           </div>
           <div>
             <Dropdown>
@@ -687,7 +706,7 @@ const Chat = () => {
     return (
       <>
         <div
-          className="messages-section"
+           className="messages-section d-flex flex-column"
           style={{
             width: "100%",
             height: "calc(100vh - 50px)",
@@ -697,17 +716,27 @@ const Chat = () => {
             marginBottom: "60px", // Add margin to the bottom to avoid overlapping with the input
           }}
         >
-          {contacts[currentContact].messages.map((msg, index) => (
+          <div className="mt-auto">
             <Message
-              key={index}
-              message={msg.message}
-              person={contacts[currentContact]}
-              isUser={msg.isUser}
-              time={msg.time}
+              key={0}
+              message={`Remember, this conversation is purely fictional and does not reflect the views of any real person or organization. Enjoy your chat with ${contacts[currentContact].name}!`}
+              person={toni}
+              isUser={false}
+              time={""}
             />
-          ))}
-          <div ref={messagesEndRef} />
-          {renderLoadingIndicator()}
+            {contacts[currentContact].messages.map((msg, index) => (
+              <Message
+                key={index}
+                message={msg.message}
+                person={contacts[currentContact]}
+                isUser={msg.isUser}
+                time={msg.time}
+                userAvatar={userAvatar}
+              />
+            ))}
+            <div ref={messagesEndRef} />
+            {renderLoadingIndicator()}
+          </div>
         </div>
         <div
           className="fixed-bottom"
@@ -765,10 +794,11 @@ const Chat = () => {
   };
 
   return (
+    
     <Container
       fluid
-      className="py-2"
-      style={{ height: "100vh", maxHeight: "100vh", overflow: "hidden" }}
+      className="py-0"
+      style={{ height: "100vh", maxHeight: "99vh", overflow: "hidden" }}
     >
       <Row>
         <Col xs={12}>
@@ -795,8 +825,10 @@ const Chat = () => {
       </Row>
       {renderContactsModal()}
       <AvatarModal 
+        avatar={userAvatar}
         setShowAvatarModal={setShowAvatarModal}
-        showAvatarModal={showAvatarModal}/>
+        showAvatarModal={showAvatarModal}
+        onAvatarChange={setUserAvatar}/>
       <DonationModal 
         showDonationModal={showDonationModal}
         setShowDonationModal={setShowDonationModal}
