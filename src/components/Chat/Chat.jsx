@@ -37,6 +37,7 @@ import AboutInfo from '../AboutInfo';
 import AvatarModal from './AvatarModal';
 import useStickyState from 'use-sticky-state';
 import DonationModal from './DonationModal';
+import EmailModal from './EmailModal';
 
 // Utils
 import { fetchChatResponse, fetchGreetings } from '../../utils/chatAPI';
@@ -70,7 +71,7 @@ const Chat = () => {
   const [currentContact, setCurrentContact] = useStickyState(0, "currentContact");
   const [deletedContacts, setDeletedContacts] = useStickyState([], "deletedContacts");
 
-  const [messageCount, setMessageCount] = useState(0);
+  const [messageCount, setMessageCount] = useStickyState(0, "messageCount");
   const [isFetchingResponse, setIsFetchingResponse] = useState(false);
   const [isFetchingContact, setIsFetchingContact] = useState(false);
   const [messageText, setMessageText] = useState("");
@@ -82,6 +83,7 @@ const Chat = () => {
   const [newContact, setNewContact] = useState("");
   const [userAvatar, setUserAvatar] = useStickyState(userAvatarImg, "userAvatar");
   const [isScriptAdded, setIsScriptAdded] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
 
   useEffect(() => {
     console.log("deletedContacts changed");
@@ -95,14 +97,6 @@ const Chat = () => {
   }, [contacts, currentContact, messageCount]);
 
   useEffect(() => {
-    // add ad script after 100 messages have been sent
-    if (messageCount >= 100 && !isScriptAdded) {
-      const script = document.createElement('script');
-      script.src = 'https://inklinkor.com/tag.min.js';
-      script.setAttribute('data-zone', '5743596');
-      document.body.appendChild(script);
-      setIsScriptAdded(true);  // Mark the script as added
-    }
     // If the name parameter is present, create a new contact with the given name
     if (name) {
       // replace any underscores in the name with blanks
@@ -188,6 +182,10 @@ const Chat = () => {
       // Check if number is divisible by 5 and show donation modal
       if (contacts.length % 5 === 0 ) {
         setShowDonationModal(true);
+      }
+      // Check if number is divisible by 2 and show email modal unless email already exists
+      if (!localStorage.getItem('userEmail') && contacts.length % 2 === 0 ) {
+        setShowEmailModal(true);
       }
   }
   else{
@@ -842,6 +840,7 @@ const Chat = () => {
         setShowDonationModal={setShowDonationModal}
         paypalLink="https://www.paypal.com/your_link_here"
       />
+      <EmailModal showEmailModal={showEmailModal} setShowEmailModal={setShowEmailModal} />
     </Container>
   );
 };

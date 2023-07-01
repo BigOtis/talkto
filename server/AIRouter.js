@@ -12,7 +12,7 @@ router.post('/getImage', scontroller.searchForImageUrl);
 router.post('/getChat', ccontroller.getChatMessage);
 router.post('/getGreeting', ccontroller.generateGreeting);
 router.post('/getHelper', ccontroller.getHelperMessage);
-router.post('/addEmail', ucontroller.addEmailToDB);
-router.post('/removeEmail', ucontroller.removeEmailFromDB);
+router.post('/addEmail', ucontroller.registerUser);
+router.post('/removeEmail', ucontroller.deleteUser);
 
 module.exports = router;
