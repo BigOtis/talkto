@@ -116,3 +116,56 @@ exports.saveStatsToDB = async (name, creatorIP) => {
     }
   }
   
+// Save an email to the database
+exports.saveEmailToDB = async (email) => {
+  try {
+    const client = await MongoClient.connect(url, { useUnifiedTopology: true });
+    const db = client.db('talktoai');
+
+    const collection = db.collection('emails');
+    await collection.createIndex({ email: 1 }, { unique: true });
+
+    await collection.insertOne({ email });
+
+    client.close();
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+// Remove an email from the database
+exports.removeEmailFromDB = async (email) => {
+  try {
+    const client = await MongoClient.connect(url, { useUnifiedTopology: true });
+    const db = client.db('talktoai');
+
+    const collection = db.collection('emails');
+    const deleteResult = await collection.deleteOne({ email });
+
+    client.close();
+
+    // returns true if an email was removed, otherwise false
+    return deleteResult.deletedCount > 0;
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+// Check if an email exists in the database
+exports.checkIfEmailExists = async (email) => {
+  try {
+    const client = await MongoClient.connect(url, { useUnifiedTopology: true });
+    const db = client.db('talktoai');
+
+    const collection = db.collection('emails');
+    const emailDocument = await collection.findOne({ email });
+
+    client.close();
+
+    // returns true if an email was found, otherwise false
+    return emailDocument != null;
+  } catch (err) {
+    console.log(err);
+    return false;
+  }
+};
