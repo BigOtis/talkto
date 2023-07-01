@@ -77,44 +77,59 @@ function getFromCache(name) {
   return avatar ? avatar.img_url : null;
 }
 
-// save stats about the number of messages sent by each user
-exports.saveStatsToDB = async (name, creatorIP) => {
-    try {
-      // clean the name text by removing any special characters, numbers, and spaces
-      const cleanName = name.replace(/[^a-zA-Z ]/g, "").replace(/\s/g, '').toLowerCase();
-  
-      // connect to the MongoDB database
-      const client = await MongoClient.connect(url, { useUnifiedTopology: true });
-      const db = client.db('talktoai');
-  
-      // create the stats collection if it doesn't exist
-      const collection = db.collection('stats');
-      await collection.createIndex({ name: 1 }, { unique: true });
-  
-      // update the document for the given name with the number of messages sent
-      const nameDoc = await collection.findOneAndUpdate(
-        { name: cleanName },
-        { $inc: { messages: 1 } },
-        { upsert: true, returnOriginal: false }
-      );
-  
-      // create the IP collection if it doesn't exist
-      const ipCollection = db.collection('ip_stats');
-      await ipCollection.createIndex({ creatorIP: 1 }, { unique: true });
-  
-      // update the document for the given IP with the number of messages sent
-      const ipDoc = await ipCollection.findOneAndUpdate(
-        { creatorIP: creatorIP },
-        { $inc: { messages: 1 } },
-        { upsert: true, returnOriginal: false }
-      );
-  
-      // close the connection to the database
-      client.close();
-    } catch (err) {
-      console.log(err);
-    }
+exports.saveStatsToDB = async (name, creatorIP, email) => {
+  try {
+    // Clean the name text by removing any special characters, numbers, and spaces
+    const cleanName = name.replace(/[^a-zA-Z ]/g, "").replace(/\s/g, "").toLowerCase();
+
+    // Connect to the MongoDB database
+    const client = await MongoClient.connect(url, { useUnifiedTopology: true });
+    const db = client.db("talktoai");
+
+    // Create the stats collection if it doesn't exist
+    const collection = db.collection("stats");
+    await collection.createIndex({ name: 1 }, { unique: true });
+
+    // Update the document for the given name with the number of messages sent and the lastUpdate date
+    const nameDoc = await collection.findOneAndUpdate(
+      { name: cleanName },
+      { $inc: { messages: 1 }, $set: { lastUpdate: new Date() } },
+      { upsert: true, returnOriginal: false }
+    );
+
+    // Create the IP collection if it doesn't exist
+    const ipCollection = db.collection("ip_stats");
+    await ipCollection.createIndex({ creatorIP: 1 }, { unique: true });
+
+    // Update the document for the given IP with the number of messages sent and the lastUpdate date
+    const ipDoc = await ipCollection.findOneAndUpdate(
+      { creatorIP: creatorIP },
+      { $inc: { messages: 1 }, $set: { lastUpdate: new Date() } },
+      { upsert: true, returnOriginal: false }
+    );
+
+    // Get the current month and year
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth() + 1; // Months are zero-based, so add 1
+    const currentYear = currentDate.getFullYear();
+
+    // Create the all_stats collection if it doesn't exist
+    const allStatsCollection = db.collection("all_stats");
+    await allStatsCollection.createIndex({ month: 1, year: 1 }, { unique: true });
+
+    // Update the document for the current month with the total number of messages
+    const allStatsDoc = await allStatsCollection.findOneAndUpdate(
+      { month: currentMonth, year: currentYear },
+      { $inc: { messages: 1 }, $set: { lastUpdate: new Date() } },
+      { upsert: true, returnOriginal: false }
+    );
+
+    // Close the connection to the database
+    client.close();
+  } catch (err) {
+    console.log(err);
   }
+};
   
 // Save an email to the database
 exports.saveEmailToDB = async (email) => {
