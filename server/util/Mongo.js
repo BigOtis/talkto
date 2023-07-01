@@ -116,22 +116,28 @@ exports.saveStatsToDB = async (name, creatorIP) => {
     }
   }
   
-// Save an email to the database
-exports.saveEmailToDB = async (email) => {
-  try {
-    const client = await MongoClient.connect(url, { useUnifiedTopology: true });
-    const db = client.db('talktoai');
-
-    const collection = db.collection('emails');
-    await collection.createIndex({ email: 1 }, { unique: true });
-
-    await collection.insertOne({ email });
-
-    client.close();
-  } catch (err) {
-    console.log(err);
-  }
-};
+  // Save an email to the database
+  exports.saveEmailToDB = async (email, verificationToken) => {
+    try {
+      const client = await MongoClient.connect(url, { useUnifiedTopology: true });
+      const db = client.db('talktoai');
+  
+      const collection = db.collection('emails');
+      await collection.createIndex({ email: 1 }, { unique: true });
+  
+      const doc = {
+        email,
+        verificationToken,
+        verified: false,
+      };
+  
+      await collection.insertOne(doc);
+  
+      client.close();
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
 // Remove an email from the database
 exports.removeEmailFromDB = async (email) => {
@@ -167,5 +173,23 @@ exports.checkIfEmailExists = async (email) => {
   } catch (err) {
     console.log(err);
     return false;
+  }
+};
+
+// Check if an email is verified
+exports.verifyEmail = async (email, verificationToken) => {
+  try {
+    const client = await MongoClient.connect(url, { useUnifiedTopology: true });
+    const db = client.db('talktoai');
+    const collection = db.collection('emails');
+
+    const doc = await collection.findOne({ email });
+
+    if (doc && doc.verificationToken === verificationToken) {
+      await collection.updateOne({ email }, { $set: { verified: true } });
+    }
+    client.close();
+  } catch (err) {
+    console.log(err);
   }
 };

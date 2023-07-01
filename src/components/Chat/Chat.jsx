@@ -37,6 +37,7 @@ import AboutInfo from '../AboutInfo';
 import AvatarModal from './AvatarModal';
 import useStickyState from 'use-sticky-state';
 import DonationModal from './DonationModal';
+import EmailVerificationModal from './EmailVerificationModal';
 
 // Utils
 import { fetchChatResponse, fetchGreetings } from '../../utils/chatAPI';
@@ -70,7 +71,7 @@ const Chat = () => {
   const [currentContact, setCurrentContact] = useStickyState(0, "currentContact");
   const [deletedContacts, setDeletedContacts] = useStickyState([], "deletedContacts");
 
-  const [messageCount, setMessageCount] = useState(0);
+  const [messageCount, setMessageCount] = useStickyState(0);
   const [isFetchingResponse, setIsFetchingResponse] = useState(false);
   const [isFetchingContact, setIsFetchingContact] = useState(false);
   const [messageText, setMessageText] = useState("");
@@ -82,6 +83,7 @@ const Chat = () => {
   const [newContact, setNewContact] = useState("");
   const [userAvatar, setUserAvatar] = useStickyState(userAvatarImg, "userAvatar");
   const [isScriptAdded, setIsScriptAdded] = useState(false);
+  const [showEmailVerificationModal, setShowEmailVerificationModal] = useState(false);
 
   useEffect(() => {
     console.log("deletedContacts changed");
@@ -95,14 +97,7 @@ const Chat = () => {
   }, [contacts, currentContact, messageCount]);
 
   useEffect(() => {
-    // add ad script after 100 messages have been sent
-    if (messageCount >= 100 && !isScriptAdded) {
-      const script = document.createElement('script');
-      script.src = 'https://inklinkor.com/tag.min.js';
-      script.setAttribute('data-zone', '5743596');
-      document.body.appendChild(script);
-      setIsScriptAdded(true);  // Mark the script as added
-    }
+
     // If the name parameter is present, create a new contact with the given name
     if (name) {
       // replace any underscores in the name with blanks
@@ -117,6 +112,25 @@ const Chat = () => {
       }
     }
   }, [name]);
+
+  useEffect(() => {
+    // add ad script after 100 messages have been sent
+    if (messageCount >= 25 && !isScriptAdded) {
+      const script = document.createElement('script');
+      script.src = 'https://inklinkor.com/tag.min.js';
+      script.setAttribute('data-zone', '5743596');
+      document.body.appendChild(script);
+      setIsScriptAdded(true);  // Mark the script as added
+    }
+    checkEmailVerification();
+  }, [messageCount, isScriptAdded]);
+
+  const checkEmailVerification = () => {
+    const emailVerified = localStorage.getItem('email');
+    if (!emailVerified && messageCount >= 1) {
+      setShowEmailVerificationModal(true);
+    }
+  };  
 
   const handleContactClick = (index) => {
     setCurrentContact(index);
@@ -841,6 +855,10 @@ const Chat = () => {
         showDonationModal={showDonationModal}
         setShowDonationModal={setShowDonationModal}
         paypalLink="https://www.paypal.com/your_link_here"
+      />
+      <EmailVerificationModal 
+        showEmailVerificationModal={showEmailVerificationModal}
+        setShowEmailVerificationModal={setShowEmailVerificationModal}
       />
     </Container>
   );
