@@ -80,6 +80,7 @@ const Chat = () => {
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [newContact, setNewContact] = useState("");
   const [userAvatar, setUserAvatar] = useStickyState(userAvatarImg, "userAvatar");
+  const [isScriptAdded, setIsScriptAdded] = useState(false);
 
   useEffect(() => {
     console.log("deletedContacts changed");
@@ -92,6 +93,14 @@ const Chat = () => {
   }, [contacts, currentContact, messageCount]);
 
   useEffect(() => {
+    // add ad script after 100 messages have been sent
+    if (messageCount >= 100 && !isScriptAdded) {
+      const script = document.createElement('script');
+      script.src = 'https://inklinkor.com/tag.min.js';
+      script.setAttribute('data-zone', '5743596');
+      document.body.appendChild(script);
+      setIsScriptAdded(true);  // Mark the script as added
+    }
     // If the name parameter is present, create a new contact with the given name
     if (name) {
       // replace any underscores in the name with blanks
