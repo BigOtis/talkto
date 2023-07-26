@@ -7,12 +7,25 @@ const fetchChatResponse = async (contact, messages) => {
     // Choose the API route based on the contact name
     const apiRoute = contact.name === "OtisFuse AI Helper" ? "/api/getHelper" : "/api/getChat";
 
+    // Check if avatar contains a data embedded image
+    let avatar = contact.avatar;
+    if (avatar.startsWith('data:image')) {
+      // Replace with generic avatar URL
+      avatar = "https://example.com/generic-avatar.png";
+    }
+
+    // Prepare contact data
+    const contactData = {
+      ...contact,
+      avatar,
+    };
+
     const response = await fetch(apiRoute, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ contact, messages: recentMessages }),
+      body: JSON.stringify({ contact: contactData, messages: recentMessages }),
     });
 
     const data = await response.json();

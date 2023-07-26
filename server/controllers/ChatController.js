@@ -51,10 +51,8 @@ const generateHelperResponse = async (messages) => {
 };
 
 
-// Helper function to call OpenAI to generate a chat response
 const generateChatResponse = async (contact, messages) => {
-
-  // Check the last message with the moderation API
+  // First check the last message with the moderation API
   const lastMessage = messages[messages.length - 1].message;
   await moderateMessage(lastMessage);
 
@@ -81,10 +79,16 @@ const generateChatResponse = async (contact, messages) => {
     return { role, content };
   });
 
+  let systemMessage = `The person you are chatting with is a fan of ${contact.name}. Pretend to be ${contact.name} and respond in character, drawing upon the knowledge you have about ${contact.name} to make the conversation engaging and realistic. Talk the same way ${contact.name} would talk copying any mannerisms, slang, or other characteristics that make ${contact.name} unique.`;
+  
+  if (contact.description) {
+    systemMessage += ` ${contact.name} is ${contact.description}`; // append the description to the system message
+  }
+
   // Add a system message for the assistant to act like the contact
   formattedMessages.unshift({
     role: "system",
-    content: `The person you are chatting with is a fan of ${contact.name}. Pretend to be ${contact.name} and respond in character, drawing upon the knowledge you have about ${contact.name} to make the conversation engaging and realistic. Talk the same way ${contact.name} would talk copying any mannerisms, slang, or other characteristics that make ${contact.name} unique.`,
+    content: systemMessage
   });
 
   const completion = await openai.createChatCompletion({
@@ -94,6 +98,7 @@ const generateChatResponse = async (contact, messages) => {
 
   return completion.data.choices[0].message.content.trim();
 };
+
 
 exports.generateGreeting = async (req, res) => {
   try {

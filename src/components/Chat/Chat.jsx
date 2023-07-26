@@ -16,6 +16,8 @@ import {
   Dropdown,
   ButtonToolbar,
   Spinner,
+  OverlayTrigger,
+  Tooltip,
 } from 'react-bootstrap';
 import {
   ArrowRight,
@@ -28,6 +30,7 @@ import {
   Instagram,
   Clipboard,
   Pinterest,
+  PencilSquare,
 } from 'react-bootstrap-icons';
 
 // Custom components
@@ -37,6 +40,7 @@ import AboutInfo from '../AboutInfo';
 import AvatarModal from './AvatarModal';
 import useStickyState from 'use-sticky-state';
 import EmailModal from './EmailModal';
+import EditContactModal from './EditContactModal';
 
 // Utils
 import { fetchChatResponse, fetchGreetings } from '../../utils/chatAPI';
@@ -81,8 +85,8 @@ const Chat = () => {
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [newContact, setNewContact] = useState("");
   const [userAvatar, setUserAvatar] = useStickyState(userAvatarImg, "userAvatar");
-  const [isScriptAdded, setIsScriptAdded] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const [showEditContactModal, setShowEditContactModal] = useState(false);  
 
   useEffect(() => {
     console.log("deletedContacts changed");
@@ -139,6 +143,17 @@ const Chat = () => {
     setShowShareModal(true);
   };
 
+  const handleEditContactClick = () => {
+    setShowEditContactModal(true);
+  };
+  
+  const handleSaveEditContact = (updatedContact) => {
+    let updatedContacts = [...contacts];
+    updatedContacts[currentContact] = updatedContact;
+    setContacts(updatedContacts);
+    setShowEditContactModal(false);
+  };  
+
   const handleNewContact = async (newContactName) => {
     setIsFetchingContact(true);
     const name = newContactName.trim();
@@ -177,8 +192,8 @@ const Chat = () => {
       setCurrentContact(0);
       setNewContact("");
       setIsFetchingContact(false);
-      // Check if number is divisible by 2 and show email modal unless email already exists
-      if (!localStorage.getItem('userEmail') && contacts.length % 2 === 0 ) {
+      // Check if number is divisible by 3 and show email modal unless email already exists
+      if (!localStorage.getItem('userEmail') && contacts.length % 3 === 0 ) {
         setShowEmailModal(true);
       }
   }
@@ -417,6 +432,14 @@ const Chat = () => {
               }
             }}
           />
+          <OverlayTrigger
+            placement="top"
+            overlay={
+              <Tooltip id="edit-button-tooltip">
+                Send message
+              </Tooltip>
+            }
+          >
           <Button
             variant="dark"
             className="btn btn-primary ms-2"
@@ -429,6 +452,23 @@ const Chat = () => {
           >
             <ArrowRight size={24} />
           </Button>
+          </OverlayTrigger>
+          <OverlayTrigger
+            placement="top"
+            overlay={
+              <Tooltip id="edit-button-tooltip">
+                Edit current contact info
+              </Tooltip>
+            }
+          >
+            <Button
+              variant="primary"
+              className="btn btn-primary ms-2"
+              onClick={() => setShowEditContactModal(true)}
+            >
+              <PencilSquare size={24} />
+            </Button>
+          </OverlayTrigger>
         </div>
       </Col>
     );
@@ -567,21 +607,7 @@ const Chat = () => {
             {renderContactsLoading()}
           </div>
           <div>
-            <Dropdown>
-              <Dropdown.Toggle variant="outline-secondary" id="dropdown-basic">
-                <ThreeDotsVertical size={24} />
-              </Dropdown.Toggle>
-
-              <Dropdown.Menu>
-                <Dropdown.Item onClick={handleShareClick}>Share</Dropdown.Item>
-                <Dropdown.Item onClick={() => setShowAboutModal(true)}>
-                  About
-                </Dropdown.Item>
-                <Dropdown.Item onClick={() => setShowDeleteContactModal(true)}>
-                  Delete Contact
-                </Dropdown.Item>
-              </Dropdown.Menu>
-            </Dropdown>
+            {renderDropdownMenu()}
           </div>
         </div>
 
@@ -698,6 +724,25 @@ const Chat = () => {
     );
   };
 
+  const renderDropdownMenu = () => {
+    return(
+      <div>
+      <Dropdown>
+        <Dropdown.Toggle variant="outline-secondary" id="dropdown-basic">
+          <ThreeDotsVertical size={24} />
+        </Dropdown.Toggle>
+
+        <Dropdown.Menu>
+          <Dropdown.Item onClick={handleShareClick}>Share</Dropdown.Item>
+          <Dropdown.Item onClick={() => setShowAboutModal(true)}>About</Dropdown.Item>
+          <Dropdown.Item onClick={handleEditContactClick}>Edit Contact</Dropdown.Item>
+          <Dropdown.Item onClick={() => setShowDeleteContactModal(true)}>Delete Contact</Dropdown.Item>
+        </Dropdown.Menu>
+      </Dropdown>
+    </div>
+    );
+  };
+
   const toggleContactsModal = () => {
     setShowContactsModal(!showContactsModal);
   };
@@ -793,6 +838,17 @@ const Chat = () => {
     );
   };
 
+  const renderEditContactModal = () => {
+    return(
+      <EditContactModal 
+      contact={contacts[currentContact]}
+      onContactChange={handleSaveEditContact}
+      showEditContactModal={showEditContactModal} 
+      setShowEditContactModal={setShowEditContactModal}
+      />
+    );
+  }
+
   return (
     
     <Container
@@ -824,6 +880,7 @@ const Chat = () => {
         </Col>
       </Row>
       {renderContactsModal()}
+      {renderEditContactModal()}
       <AvatarModal 
         avatar={userAvatar}
         setShowAvatarModal={setShowAvatarModal}

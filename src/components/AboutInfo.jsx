@@ -27,7 +27,7 @@ const AboutInfo = () => {
 
   const advertiseText = `Advertise With Us:
   
-  Are you interested in advertising on our platform? Reach out to us at otis1017@gmail.com for business inquiries and advertising opportunities. Our platform provides a unique opportunity to promote your products or services to a diverse and engaged audience. We offer various advertising options to suit your marketing needs. Get in touch with us today to discuss how we can help you reach your target audience.`;
+  Are you interested in advertising on our platform? Reach out to us at otisfuse@gmail.com for business inquiries and advertising opportunities. Our platform provides a unique opportunity to promote your products or services to a diverse and engaged audience. We offer various advertising options to suit your marketing needs. Get in touch with us today to discuss how we can help you reach your target audience.`;
 
   return (
     <div>
