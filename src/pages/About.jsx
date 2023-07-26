@@ -9,7 +9,7 @@ const About = () => {
 
   return (
     <div>
-        
+      
       <Header head={pageTitle} description={pageDescription} />
       <hr />
       <AboutInfo />
