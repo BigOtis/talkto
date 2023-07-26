@@ -9,6 +9,10 @@ const openai = new OpenAIApi(configuration);
 
 // Helper function to call OpenAI to generate a chat response
 const generateHelperResponse = async (messages) => {
+  // Check the last message with the moderation API
+  const lastMessage = messages[messages.length - 1].message;
+  await moderateMessage(lastMessage);
+
   // Truncate message list to fit within GPT's token limit of 2500 tokens
   let tokens = 0;
   const truncatedMessages = [];
@@ -49,6 +53,11 @@ const generateHelperResponse = async (messages) => {
 
 // Helper function to call OpenAI to generate a chat response
 const generateChatResponse = async (contact, messages) => {
+
+  // Check the last message with the moderation API
+  const lastMessage = messages[messages.length - 1].message;
+  await moderateMessage(lastMessage);
+
   // Truncate message list to fit within GPT's token limit of 2500 tokens
   let tokens = 0;
   const truncatedMessages = [];
@@ -155,11 +164,16 @@ exports.getHelperMessage = async (req, res) => {
       console.error("Error saving stats to database:", e);
     }
   } catch (e) {
-    res.json({
-      message:
-        "An error occurred generating your chat response. Please try again later. " +
-        e,
-    });
+    if (e.message === 'The message violates the terms of service.') {
+      res.json({ message: e.message + ' Please try a different topic.'});
+    } 
+    else {
+      res.json({
+        message:
+          "An error occurred generating your chat response. Please try again later. " +
+          e,
+      });
+    }
   }
 };
 
@@ -167,6 +181,22 @@ exports.getHelperMessage = async (req, res) => {
 // Function to parse client ip address from request
 const getClientIp = (req) => {
   return req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+};
+
+const moderateMessage = async (message) => {
+  const moderationResponse = await openai.createModeration({ input: message });
+
+  // check if message has been flagged
+  if (moderationResponse.data.results && moderationResponse.data.results[0].flagged) {
+    const categories = moderationResponse.data.results[0].category_scores;
+
+    // Check if any category (except sexual) has a score higher than 4
+    for (const category in categories) {
+      if (category !== 'sexual' && categories[category] > .8) {
+        throw new Error('The message violates the terms of service. Please try another topic. If you think this is a mistake, please contact the site administrator.');
+      }
+    }
+  }
 };
 
 
