@@ -189,13 +189,18 @@ const getClientIp = (req) => {
 };
 
 const moderateMessage = async (message, contactName, contactDescription) => {
-  const itemsToCheck = [message, contactName, contactDescription];
-  for (const item of itemsToCheck) {
-    if (item !== undefined && item !== null) {
-      const moderationResponse = await openai.createModeration({ input: item });
-      if (moderationResponse.data.results && moderationResponse.data.results[0].flagged) {
-        throw new Error('The content violates the terms of service.');
-      }
+  try {
+  const itemsToCheck = [message, contactName, contactDescription].filter(item => item !== undefined && item !== null);
+  const combinedInput = itemsToCheck.join(' '); // Combine all items into a single string
+
+  if (combinedInput.length > 0) { // Only call the API if there is content to check
+    const moderationResponse = await openai.createModeration({ input: combinedInput });
+    if (moderationResponse.data.results && moderationResponse.data.results[0].flagged) {
+      throw new Error('Your message content violates the terms of service.');
     }
+  }
+  }
+  catch (e) {
+    // timeout error, just do nothing until they increase rate limit
   }
 };

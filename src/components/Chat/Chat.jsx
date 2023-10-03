@@ -237,8 +237,7 @@ const Chat = () => {
         ),
         timeout(120000),
       ]);
-
-      // Add the assistant's response to the messages array
+  
       const assistantMessage = {
         message: response,
         time: getDateTimeString(),
@@ -247,14 +246,19 @@ const Chat = () => {
       contacts[currentContact].messages.push(assistantMessage);
     } catch (error) {
       console.error("Error fetching chat response", error);
-
-      // Show an error message to the user
-      contacts[currentContact].messages.push({
-        message:
-          "Sorry, I've been a little overloaded with messages. I'm taking a short break. Chat with me again soon!",
-        time: getDateTimeString(),
-        isUser: false,
-      });
+  
+      if (error.message.includes('Your message content violates the terms of service.')) {
+        userMessage.message = 'This message violated the terms of service';
+        contacts[currentContact].messages.pop(); // Remove the last message (user's violating message)
+        contacts[currentContact].messages.push(userMessage); // Push the sanitized message
+      } else {
+        // Handle other types of errors
+        contacts[currentContact].messages.push({
+          message: "Sorry, I've been a little overloaded with messages. I'm taking a short break. Chat with me again soon!",
+          time: getDateTimeString(),
+          isUser: false,
+        });
+      }
     } finally {
       setIsFetchingResponse(false);
     }

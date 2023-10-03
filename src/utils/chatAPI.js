@@ -29,8 +29,14 @@ const fetchChatResponse = async (contact, messages) => {
     });
 
     const data = await response.json();
+    if (data.message.includes("Your message content violates the terms of service.")) {
+      throw new Error("Your message content violates the terms of service.");
+    }
     return data.message;
   } catch (error) {
+    if (error.message === "Your message content violates the terms of service.") {
+      throw error;
+    }
     console.error("Error fetching chat response:", error);
     return "Sorry, I've been having too many chats lately and need a break. Please try again later.";
   }
@@ -52,6 +58,11 @@ const fetchGreetings = async (name) => {
   if (message.includes("An error occurred")) {
     return undefined;
   }
+
+  if (data.message.includes("Your message content violates the terms of service.")) {
+    throw new Error("Your message content violates the terms of service.");
+  }
+
   return data.message;
 };
 
