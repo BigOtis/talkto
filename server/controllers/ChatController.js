@@ -54,7 +54,7 @@ const generateHelperResponse = async (messages) => {
 const generateChatResponse = async (contact, messages) => {
   // First check the last message with the moderation API
   const lastMessage = messages[messages.length - 1].message;
-  await moderateMessage(lastMessage);
+  await moderateMessage(lastMessage, contact.name, contact.description);
 
   // Truncate message list to fit within GPT's token limit of 2500 tokens
   let tokens = 0;
@@ -188,20 +188,14 @@ const getClientIp = (req) => {
   return req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 };
 
-const moderateMessage = async (message) => {
-  const moderationResponse = await openai.createModeration({ input: message });
-
-  // check if message has been flagged
-  if (moderationResponse.data.results && moderationResponse.data.results[0].flagged) {
-    const categories = moderationResponse.data.results[0].category_scores;
-
-    // Check if any category (except sexual) has a score higher than 4
-    for (const category in categories) {
-      if (category !== 'sexual' && categories[category] > .8) {
-        throw new Error('The message violates the terms of service. Please try another topic. If you think this is a mistake, please contact the site administrator.');
+const moderateMessage = async (message, contactName, contactDescription) => {
+  const itemsToCheck = [message, contactName, contactDescription];
+  for (const item of itemsToCheck) {
+    if (item !== undefined && item !== null) {
+      const moderationResponse = await openai.createModeration({ input: item });
+      if (moderationResponse.data.results && moderationResponse.data.results[0].flagged) {
+        throw new Error('The content violates the terms of service.');
       }
     }
   }
 };
-
-
