@@ -2,7 +2,7 @@
 const fetchChatResponse = async (contact, messages) => {
   try {
     // Pass only the most recent 10 or fewer messages
-    const recentMessages = messages.slice(-10);
+    const recentMessages = messages.slice(-5);
 
     // Choose the API route based on the contact name
     const apiRoute = contact.name === "OtisFuse AI Helper" ? "/api/getHelper" : "/api/getChat";
