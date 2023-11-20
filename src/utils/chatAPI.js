@@ -1,5 +1,6 @@
 // chatAPI.js
 const fetchChatResponse = async (contact, messages) => {
+  return "Hello, due to changes from OpenAI, we've replaced otisfuse chat with a GPT that you can check out here: https://chat.openai.com/g/g-io8IgJKMR-character-chat";
   try {
     // Pass only the most recent 10 or fewer messages
     const recentMessages = messages.slice(-5);
@@ -43,6 +44,7 @@ const fetchChatResponse = async (contact, messages) => {
 };
 
 const fetchGreetings = async (name) => {
+  return "Hello, due to changes from OpenAI, we've replaced otisfuse chat with a GPT that you can check out here: https://chat.openai.com/g/g-io8IgJKMR-character-chat";
   // Fetch the greeting from the API
   const response = await fetch("/api/getGreeting", {
     method: "POST",
