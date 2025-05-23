@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Comfortaa:wght@300&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;700&display=swap");
 
 /* Custom Bootstrap Theme for a modern news website */
 
@@ -12,8 +12,18 @@
 
 /* Background */
 body {
-  background-color: var(--light-color);
+  background: linear-gradient(135deg, #f8fafc 0%, #e0e7ef 100%);
   font-family: "Comfortaa", cursive;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+/* Glassy utility class */
+.glassy-header, .glassy-header-card, .glassy-footer {
+  background: rgba(255,255,255,0.85) !important;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.10);
 }
 
 /* Navbar */
@@ -45,6 +55,7 @@ body {
 .btn {
   font-weight: bold;
   border: none;
+  border-radius: 0.75rem;
 }
 
 .btn-primary {
@@ -57,4 +68,36 @@ body {
   background-color: var(--secondary-color);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
   transform: translateY(-2px);
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Comfortaa", cursive;
+  font-weight: 700;
+  color: #132a49;
+}
+
+/* Links */
+a {
+  color: #3b82f6;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+a:hover, a:focus {
+  color: #132a49;
+  text-decoration: underline;
+}
+
+/* Utility */
+.shadow-lg {
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.10) !important;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  background: #e0e7ef;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 8px;
 }
