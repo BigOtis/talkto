@@ -1,5 +1,9 @@
 # OtisFuse - AI Chat
 
+![image](https://github.com/user-attachments/assets/4df4078a-7d96-458b-b608-0b25c16bc5bb)
+
+Live demo available: https://chat.otisfuse.com/
+
 OtisFuse - AI Chat lets you chat with AI-generated personalities—famous, fictional, or anyone you can imagine. Enjoy entertaining, educational, and humorous conversations powered by advanced AI. Create new conversations with personalities of your choice, and the application uses the OpenAI API to generate responses, simulating a chat experience with that character.
 
 ## Features
