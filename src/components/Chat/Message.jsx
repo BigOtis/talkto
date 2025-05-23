@@ -16,56 +16,46 @@ const Message = ({ message, person, time, isUser, userAvatar }) => {
 
   if (isUser) {
     return (
-      <div className="d-flex flex-row justify-content-start">
-        <div style={{ minWidth: "60px" }}>
-          <Image
-            src={userAvatar}
-            roundedCircle
-            style={{
-              width: "60px",
-              height: "60px",
-              padding: "2px",
-              border: "1px solid #000",
-            }}
-          />
-        </div>
+      <div className="d-flex flex-row justify-content-end align-items-end mb-2">
         <div>
           <p
-            className="small p-2 ms-3 mb-1 rounded-3 small-text-on-mobile border"
-            style={{ backgroundColor: "#b3cee5" }}
+            className="message-bubble-user"
+            aria-label="Your message"
           >
             {message}
           </p>
-          <p className="small ms-3 mb-3 rounded-3 text-muted float-start small-text-on-mobile">
-            {time}
-          </p>
+          <div className="d-flex justify-content-end">
+            <span className="message-timestamp" aria-label="Sent time">{time}</span>
+          </div>
         </div>
+        <Image
+          src={userAvatar}
+          roundedCircle
+          className="ms-2"
+          style={{ width: "44px", height: "44px", border: "2px solid #3b82f6" }}
+          alt="Your avatar"
+        />
       </div>
     );
   } else {
     return (
-      <div className="d-flex flex-row justify-content-start">
-        <div style={{ minWidth: "60px" }}>
-          <Image
-            src={person.avatar}
-            roundedCircle
-            style={{
-              width: "60px",
-              height: "60px",
-              padding: "2px",
-              border: "1px solid #000",
-            }}
-          />
-        </div>
+      <div className="d-flex flex-row justify-content-start align-items-end mb-2">
+        <Image
+          src={person.avatar}
+          roundedCircle
+          className="me-2"
+          style={{ width: "44px", height: "44px", border: "2px solid #e0e7ef" }}
+          alt={`${person.name} avatar`}
+        />
         <div>
           <p
-            className="small p-2 ms-3 mb-1 rounded-3 small-text-on-mobile border"
-            style={{ backgroundColor: "#f5f6f7" }}
+            className="message-bubble-ai"
+            aria-label={`${person.name} message`}
             dangerouslySetInnerHTML={messageHtml}
           />
-          <p className="small ms-3 mb-3 rounded-3 text-muted float-end small-text-on-mobile">
-            {time}
-          </p>
+          <div className="d-flex justify-content-start">
+            <span className="message-timestamp" aria-label="Received time">{time}</span>
+          </div>
         </div>
       </div>
     );

@@ -344,28 +344,27 @@ const Chat = () => {
                 placeholder="Type any name to start..."
                 value={newContact}
                 onChange={(e) => setNewContact(e.target.value)}
+                aria-label="Start new chat"
               />
-              <Button variant="primary" type="submit" className="border-0 ms-2">
+              <Button variant="primary" type="submit" className="border-0 ms-2" aria-label="Add new chat">
                 <PersonPlus size={24} />
               </Button>
             </Form.Group>
           </Form>
           {renderContactsLoading()}
-          <div
-            className="contacts-section"
-            style={{ height: "calc(100vh - 200px)" }}
-          >
-            <AutoSizer>
-              {({ width, height }) => (
-                <List
-                  width={width}
-                  height={height}
-                  itemCount={contacts.length}
-                  itemSize={100}
-                  children={contactRenderer}
+          <div className="contacts-section" style={{ height: "calc(100vh - 200px)" }}>
+            <ul className="list-unstyled mb-0">
+              {contacts.map((person, index) => (
+                <Contact
+                  key={index}
+                  index={index}
+                  person={person}
+                  handleContactClick={handleContactClick}
+                  handleDeleteContact={handleDeleteContact}
+                  currentContact={currentContact}
                 />
-              )}
-            </AutoSizer>
+              ))}
+            </ul>
           </div>
         </div>
       </Col>
@@ -384,91 +383,88 @@ const Chat = () => {
             overflowY: "auto",
             paddingRight: "1rem",
           }}
+          tabIndex={0}
+          aria-label="Chat messages"
         >
           <div className="mt-auto">
-          <Message
+            <Message
               key={0}
               message={`Remember, this conversation is purely fictional and does not reflect the views of any real person or organization. Enjoy your chat with ${contacts[currentContact].name}!`}
               person={toni}
               isUser={false}
               time={""}
             />
-          {contacts[currentContact].messages.map((msg, index) => (
-            <Message
-              key={index}
-              message={msg.message}
-              person={contacts[currentContact]}
-              isUser={msg.isUser}
-              time={msg.time}
-              userAvatar={userAvatar}
-            />
-          ))}
-          {renderLoadingIndicator()}
+            {contacts[currentContact].messages.map((msg, index) => (
+              <Message
+                key={index}
+                message={msg.message}
+                person={contacts[currentContact]}
+                isUser={msg.isUser}
+                time={msg.time}
+                userAvatar={userAvatar}
+              />
+            ))}
+            {renderLoadingIndicator()}
           </div>
           <div ref={messagesEndRef} />
         </div>
-        <div className="text-muted d-flex justify-content-start align-items-center pe-3 pt-3 mt-2">
+        <div className="input-area mt-2" aria-label="Type your message">
           <Image
             src={userAvatar}
-            onClick={() => {setShowAvatarModal(true)}}
+            onClick={() => { setShowAvatarModal(true) }}
             roundedCircle
-            style={{
-              width: "50px",
-              height: "50px",
-              padding: "2px",
-              border: "1px solid #000",
-              marginRight: "5px",
-            }}
+            style={{ width: "44px", height: "44px", border: "2px solid #3b82f6", marginRight: "8px", cursor: "pointer" }}
+            alt="Your avatar"
+            tabIndex={0}
+            aria-label="Change your avatar"
           />
           <input
             ref={inputRef}
             type="text"
-            className="form-control form-control-lg"
-            id="exampleFormControlInput2"
-            placeholder="Type message"
+            className="form-control form-control-lg border-0 bg-transparent"
+            id="chatInputDesktop"
+            placeholder="Type message..."
             maxLength="200"
             value={messageText}
             onChange={(event) => setMessageText(event.target.value)}
             onKeyDown={(event) => {
-              if (!isFetchingResponse && event.keyCode === 13) {
+              if (!isFetchingResponse && event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
                 handleSendMessage({ target: { value: messageText } });
                 setMessageText("");
               }
             }}
+            aria-label="Message input"
           />
           <OverlayTrigger
             placement="top"
-            overlay={
-              <Tooltip id="edit-button-tooltip">
-                Send message
-              </Tooltip>
-            }
-          >
-          <Button
-            variant="dark"
-            className="btn btn-primary ms-2"
-            onClick={(event) => {
-              if (!isFetchingResponse) {
-                handleSendMessage({ target: { value: messageText } });
-                setMessageText("");
-              }
-            }}
-          >
-            <ArrowRight size={24} />
-          </Button>
-          </OverlayTrigger>
-          <OverlayTrigger
-            placement="top"
-            overlay={
-              <Tooltip id="edit-button-tooltip">
-                Edit current contact info
-              </Tooltip>
-            }
+            overlay={<Tooltip id="send-tooltip">Send message</Tooltip>}
           >
             <Button
               variant="primary"
-              className="btn btn-primary ms-2"
+              className="ms-2 d-flex align-items-center justify-content-center"
+              style={{ borderRadius: "50%", width: "44px", height: "44px" }}
+              onClick={() => {
+                if (!isFetchingResponse) {
+                  handleSendMessage({ target: { value: messageText } });
+                  setMessageText("");
+                }
+              }}
+              aria-label="Send message"
+            >
+              <ArrowRight size={24} />
+            </Button>
+          </OverlayTrigger>
+          <OverlayTrigger
+            placement="top"
+            overlay={<Tooltip id="edit-contact-tooltip">Edit current contact info</Tooltip>}
+          >
+            <Button
+              variant="outline-secondary"
+              className="ms-2 d-flex align-items-center justify-content-center"
+              style={{ borderRadius: "50%", width: "44px", height: "44px" }}
               onClick={() => setShowEditContactModal(true)}
+              aria-label="Edit contact"
             >
               <PencilSquare size={24} />
             </Button>
@@ -688,40 +684,29 @@ const Chat = () => {
                 placeholder="Start new chat"
                 value={newContact}
                 onChange={(e) => setNewContact(e.target.value)}
+                aria-label="Start new chat"
               />
-              <Button variant="primary" type="submit" className="ms-2">
+              <Button variant="primary" type="submit" className="ms-2" aria-label="Add new chat">
                 <PersonPlus size={20} />
               </Button>
             </Form.Group>
           </Form>
-          <div
-            className="contacts-list"
-            style={{ maxHeight: "80vh", overflowY: "auto" }}
-          >
-            {contacts.map((person, index) => (
-              <div
-                key={index}
-                onClick={() => {
-                  setCurrentContact(index);
-                  toggleContactsModal();
-                }}
-                className={`d-flex align-items-center p-2 ${
-                  currentContact === index ? "bg-light" : ""
-                }`}
-              >
-                <Image
-                  src={person.avatar}
-                  roundedCircle
-                  style={{
-                    width: "50px",
-                    height: "50px",
-                    padding: "2px",
-                    border: "1px solid #000",
+          <div className="contacts-list" style={{ maxHeight: "80vh", overflowY: "auto" }}>
+            <ul className="list-unstyled mb-0">
+              {contacts.map((person, index) => (
+                <Contact
+                  key={index}
+                  index={index}
+                  person={person}
+                  handleContactClick={(i) => {
+                    setCurrentContact(i);
+                    toggleContactsModal();
                   }}
+                  handleDeleteContact={handleDeleteContact}
+                  currentContact={currentContact}
                 />
-                <span className="ms-3">{person.name}</span>
-              </div>
-            ))}
+              ))}
+            </ul>
           </div>
         </Modal.Body>
       </Modal>
@@ -755,15 +740,17 @@ const Chat = () => {
     return (
       <>
         <div
-           className="messages-section d-flex flex-column"
+          className="messages-section d-flex flex-column"
           style={{
             width: "100%",
             height: "calc(100vh - 50px)",
             overflowY: "auto",
-            paddingTop: "75px", // Add padding to the top to avoid overlapping with the input
+            paddingTop: "75px",
             paddingRight: "1rem",
-            marginBottom: "60px", // Add margin to the bottom to avoid overlapping with the input
+            marginBottom: "60px",
           }}
+          tabIndex={0}
+          aria-label="Chat messages"
         >
           <div className="mt-auto">
             <Message
@@ -788,56 +775,73 @@ const Chat = () => {
           </div>
         </div>
         <div
-          className="fixed-bottom"
-          style={{
-            borderTop: "1px solid #aaa",
-            paddingLeft: "1rem",
-            paddingRight: "1rem",
-          }}
+          className="input-area fixed-bottom"
+          style={{ borderTop: "1px solid #aaa", paddingLeft: "1rem", paddingRight: "1rem" }}
+          aria-label="Type your message"
         >
-          <div className="text-muted d-flex justify-content-center align-items-center pt-3">
-            <Image
-              src={userAvatar}
-              onClick={() => {setShowAvatarModal(true)}}
-              roundedCircle
-              style={{
-                width: "50px",
-                height: "50px",
-                padding: "2px",
-                border: "1px solid #000",
-                marginRight: "5px",
-              }}
-            />
-            <input
-              ref={inputRef}
-              type="text"
-              className="form-control form-control-lg small-text-on-mobile"
-              id="exampleFormControlInput2"
-              placeholder="Type message"
-              maxLength="200"
-              value={messageText}
-              onChange={(event) => setMessageText(event.target.value)}
-              onKeyDown={(event) => {
-                if (!isFetchingResponse && event.keyCode === 13) {
-                  handleSendMessage({ target: { value: messageText } });
-                  setMessageText("");
-                }
-              }}
-            />
-            <Button
-              variant="dark"
-              className="btn btn-primary ms-2"
-              onClick={(event) => {
-                if (!isFetchingResponse) {
-                  handleSendMessage({ target: { value: messageText } });
-                  setMessageText("");
-                }
-              }}
-            >
-              <ArrowRight size={24} />
-            </Button>
-          </div>
+          <Image
+            src={userAvatar}
+            onClick={() => { setShowAvatarModal(true) }}
+            roundedCircle
+            style={{ width: "44px", height: "44px", border: "2px solid #3b82f6", marginRight: "8px", cursor: "pointer" }}
+            alt="Your avatar"
+            tabIndex={0}
+            aria-label="Change your avatar"
+          />
+          <input
+            ref={inputRef}
+            type="text"
+            className="form-control form-control-lg border-0 bg-transparent small-text-on-mobile"
+            id="chatInputMobile"
+            placeholder="Type message..."
+            maxLength="200"
+            value={messageText}
+            onChange={(event) => setMessageText(event.target.value)}
+            onKeyDown={(event) => {
+              if (!isFetchingResponse && event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                handleSendMessage({ target: { value: messageText } });
+                setMessageText("");
+              }
+            }}
+            aria-label="Message input"
+          />
+          <Button
+            variant="primary"
+            className="ms-2 d-flex align-items-center justify-content-center"
+            style={{ borderRadius: "50%", width: "44px", height: "44px" }}
+            onClick={() => {
+              if (!isFetchingResponse) {
+                handleSendMessage({ target: { value: messageText } });
+                setMessageText("");
+              }
+            }}
+            aria-label="Send message"
+          >
+            <ArrowRight size={24} />
+          </Button>
         </div>
+        {/* Floating Action Button for New Chat */}
+        <Button
+          variant="primary"
+          className="position-fixed"
+          style={{
+            bottom: 80,
+            right: 24,
+            borderRadius: "50%",
+            width: 56,
+            height: 56,
+            zIndex: 2000,
+            boxShadow: "0 4px 16px rgba(59,130,246,0.18)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center"
+          }}
+          onClick={() => setShowContactsModal(true)}
+          aria-label="Start new chat"
+        >
+          <PersonPlus size={28} />
+        </Button>
       </>
     );
   };

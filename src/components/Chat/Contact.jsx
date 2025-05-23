@@ -10,12 +10,7 @@ const Contact = ({
   currentContact,
 }) => {
   const lastMessage = person.messages[person.messages.length - 1].message;
-
-  // if the last message is too long, truncate it
-  let lastMessageTruncated = lastMessage;
-  if (lastMessage.length > 30) {
-    lastMessageTruncated = lastMessage.substring(0, 75) + "...";
-  }
+  let lastMessageTruncated = lastMessage.length > 60 ? lastMessage.substring(0, 60) + "..." : lastMessage;
 
   const shareUrl = `${window.location.origin}/redirect/${person.name.replace(
     / /g,
@@ -40,56 +35,51 @@ const Contact = ({
   };
 
   return (
-    <li className="p-2 border-bottom">
-      <div className="d-flex justify-content-between">
-        <div
-          className="d-flex flex-row"
-          onClick={() => handleContactClick(index)}
-        >
-          <div>
-            <Image
-              src={person.avatar}
-              roundedCircle
-              style={{
-                width: "55px",
-                height: "55px",
-                padding: "1px",
-                border: "1px solid #000",
-                marginRight: "10px",
-              }}
-            />
-            <span className="badge bg-success badge-dot"></span>
+    <li
+      className={`contact-item d-flex justify-content-between align-items-center ${currentContact === index ? "selected" : ""}`}
+      aria-label={`Chat with ${person.name}`}
+      tabIndex={0}
+      onClick={() => handleContactClick(index)}
+      onKeyPress={e => { if (e.key === 'Enter') handleContactClick(index); }}
+      style={{ outline: currentContact === index ? '2px solid #3b82f6' : 'none' }}
+    >
+      <div className="d-flex align-items-center">
+        <Image
+          src={person.avatar}
+          roundedCircle
+          className="contact-avatar"
+          style={{ width: "48px", height: "48px" }}
+          alt={`${person.name} avatar`}
+        />
+        <div className="ms-2">
+          <div className="fw-bold text-truncate" style={{ maxWidth: 120 }}>
+            {person.name}
           </div>
-          <div className="pt-1 small-text-on-mobile">
-            <p className="fw-bold mb-0">
-              <u>{person.name}</u>
-            </p>
-            <p className="small text-muted">{lastMessageTruncated}</p>
+          <div className="small text-muted text-truncate" style={{ maxWidth: 140 }}>
+            {lastMessageTruncated}
           </div>
         </div>
-        {currentContact === index && (
-          <div className="d-flex">
-            <div style={{ display: "inline-block" }}>
-              <button
-                className="btn btn-sm btn-danger me-2"
-                onClick={() => handleDeleteContact(index)}
-                style={{ position: "relative", top: "-2px" }}
-              >
-                <FiTrash2 />
-              </button>
-            </div>
-            <div style={{ display: "inline-block" }}>
-              <button
-                className="btn btn-sm btn-primary"
-                onClick={() => handleShareClick(person.name)}
-                style={{ position: "relative", top: "-2px" }}
-              >
-                <FiShare />
-              </button>
-            </div>
-          </div>
-        )}
       </div>
+      {currentContact === index && (
+        <div className="d-flex align-items-center ms-2">
+          <button
+            className="btn btn-sm btn-danger me-2"
+            aria-label={`Delete chat with ${person.name}`}
+            onClick={e => { e.stopPropagation(); handleDeleteContact(index); }}
+            style={{ borderRadius: '50%' }}
+          >
+            <FiTrash2 />
+          </button>
+          <button
+            className="btn btn-sm btn-primary"
+            aria-label={`Share chat with ${person.name}`}
+            onClick={e => { e.stopPropagation(); handleShareClick(person.name); }}
+            style={{ borderRadius: '50%' }}
+          >
+            <FiShare />
+          </button>
+        </div>
+      )}
     </li>
   );
 };
