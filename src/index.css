@@ -101,3 +101,9 @@ a:hover, a:focus {
   background: #cbd5e1;
   border-radius: 8px;
 }
+
+@media (max-width: 767px) {
+  .glassy-footer {
+    display: none !important;
+  }
+}
