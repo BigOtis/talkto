@@ -10,29 +10,29 @@ const PORT = process.env.PORT || 4000;
 
 // Middleware to validate request
 const validateRequest = (req, res, next) => {
-    const expectedOrigins = ['chat.otisfuse.com', 'www.otisfuse.com', 'localhost:3000'];
-  
-    // Check the request headers for common properties that indicate a real user/browser
-    const userAgent = req.get('User-Agent');
-    const referer = req.get('Referer');
-    const origin = req.get('Origin');
-  
-    // Perform additional checks as needed
-    if (
-      userAgent &&
-      referer &&
-      origin &&
-      expectedOrigins.some((expectedOrigin) =>
-        origin.toLowerCase().includes(expectedOrigin.toLowerCase())
-      )
-    ) {
-      // Request is coming from a real user/browser and an expected origin
-      next();
-    } else {
-      // Request is suspicious or missing required headers
-      res.status(403).json({ error: 'Invalid request' });
-    }
-  };  
+  // Allow public access to GET /api/stats
+  if (req.method === 'GET' && req.path === '/stats') {
+    return next();
+  }
+
+  const expectedOrigins = ['chat.otisfuse.com', 'www.otisfuse.com', 'localhost:3000'];
+  const userAgent = req.get('User-Agent');
+  const referer = req.get('Referer');
+  const origin = req.get('Origin');
+
+  if (
+    userAgent &&
+    referer &&
+    origin &&
+    expectedOrigins.some((expectedOrigin) =>
+      origin.toLowerCase().includes(expectedOrigin.toLowerCase())
+    )
+  ) {
+    next();
+  } else {
+    res.status(403).json({ error: 'Invalid request' });
+  }
+};
   
 // router for the api layer
 app.use(bodyParser.json());

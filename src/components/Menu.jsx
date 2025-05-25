@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Nav, Container, Image } from "react-bootstrap";
 import otisfuse from '../img/of.png';
 import { useMediaQuery } from 'react-responsive';
-import {ChatDots, InfoCircle} from 'react-bootstrap-icons';
+import { ChatDots, InfoCircle, BarChart } from 'react-bootstrap-icons';
 
 const Menu = () => {
   const isDesktop = useMediaQuery({ minWidth: 767 });
@@ -37,18 +37,24 @@ const Menu = () => {
             <span style={{ fontSize: '1.1rem', color: '#3b82f6', fontWeight: 500, marginLeft: 4, marginTop: 2, letterSpacing: '0.01em' }}>Chat with AI Personalities</span>
           </Link>
           <Nav>
-            <ul className="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
+            <ul className="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0" style={{ alignItems: 'center' }}>
               <li>
-                <Link to="/" className="nav-link px-3 link-secondary" style={{ fontSize: '1.1rem', fontWeight: 600 }}>
-                  <ChatDots className="me-1" />
-                  Chat
+                <Link to="/" className="nav-link px-3 link-secondary d-flex align-items-center" style={{ fontSize: '1.1rem', fontWeight: 600 }}>
+                  <ChatDots className="me-2" size={20} />
+                  <span>Chat</span>
                 </Link>
               </li>
               <li>
-                <Link to="/about" className="nav-link px-3 link-secondary" style={{ fontSize: '1.1rem', fontWeight: 600 }}>
-                  <InfoCircle className="me-1" />
-                  About
+                <Link to="/about" className="nav-link px-3 link-secondary d-flex align-items-center" style={{ fontSize: '1.1rem', fontWeight: 600 }}>
+                  <InfoCircle className="me-2" size={20} />
+                  <span>About</span>
                 </Link>
+              </li>
+              <li>
+                <a href="/stats" className="nav-link px-3 link-secondary d-flex align-items-center" style={{ fontSize: '1.1rem', fontWeight: 600 }}>
+                  <BarChart className="me-2" size={20} />
+                  <span>Stats</span>
+                </a>
               </li>
             </ul>
           </Nav>
