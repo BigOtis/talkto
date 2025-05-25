@@ -33,9 +33,12 @@ const generateHelperResponse = async (messages) => {
     return { role, content };
   });
 
+  const systemMessage = `Please provide information about the Otis-Fuse AI Chat website and its features. The website allows users to chat with fictional characters by typing any name they can imagine. Users can start new conversations by typing the desired name in the input field. The layout is mobile-friendly, with the contacts section hidden in a menu to maximize the messaging area. If you are asked to provide a list of names, Please provide a list of famous characters as suggestions for the user to chat with. For each character's name, wrap it in <name> tags, like this: <name>Character Name</name>`;
+  await moderateMessage(systemMessage);
+
   formattedMessages.unshift({
     role: "system",
-    content: `Please provide information about the Otis-Fuse AI Chat website and its features. The website allows users to chat with fictional characters by typing any name they can imagine. Users can start new conversations by typing the desired name in the input field. The layout is mobile-friendly, with the contacts section hidden in a menu to maximize the messaging area. If you are asked to provide a list of names, Please provide a list of famous characters as suggestions for the user to chat with. For each character's name, wrap it in <name> tags, like this: <name>Character Name</name>`
+    content: systemMessage
   });
 
   const completion = await openai.createChatCompletion({
@@ -72,10 +75,10 @@ const generateChatResponse = async (contact, messages) => {
   });
 
   let systemMessage = `The person you are chatting with is a fan of ${contact.name}. Pretend to be ${contact.name} and respond in character, drawing upon the knowledge you have about ${contact.name} to make the conversation engaging and realistic. Talk the same way ${contact.name} would talk copying any mannerisms, slang, or other characteristics that make ${contact.name} unique.`;
-  
   if (contact.description) {
     systemMessage += ` ${contact.name} is ${contact.description}`;
   }
+  await moderateMessage(systemMessage, contact.name, contact.description);
 
   formattedMessages.unshift({
     role: "system",
@@ -94,12 +97,13 @@ exports.generateGreeting = async (req, res) => {
   try {
     const { name } = req.body;
 
+    const systemMessage = `The person you are chatting with is a fan of ${name}. Pretend to be ${name} and respond in character, drawing upon the knowledge you have about ${name} to make the conversation engaging and realistic. \n        Talk the same way ${name} would talk copying any mannerisms, slang, or other characteristics that make ${name} unique. \n        Start by saying hello to the user in your own short way.`;
+    await moderateMessage(systemMessage, name);
+
     const formattedMessages = [
       {
         role: "system",
-        content: `The person you are chatting with is a fan of ${name}. Pretend to be ${name} and respond in character, drawing upon the knowledge you have about ${name} to make the conversation engaging and realistic. 
-        Talk the same way ${name} would talk copying any mannerisms, slang, or other characteristics that make ${name} unique. 
-        Start by saying hello to the user in your own short way.`,
+        content: systemMessage,
       },
     ];
 
@@ -172,17 +176,13 @@ const getClientIp = (req) => {
 };
 
 const moderateMessage = async (message, contactName, contactDescription) => {
-  try {
-    const itemsToCheck = [message, contactName, contactDescription].filter(item => item !== undefined && item !== null);
-    const combinedInput = itemsToCheck.join(' ');
+  const itemsToCheck = [message, contactName, contactDescription].filter(item => item !== undefined && item !== null);
+  const combinedInput = itemsToCheck.join(' ');
 
-    if (combinedInput.length > 0) {
-      const moderationResponse = await openai.createModeration({ input: combinedInput });
-      if (moderationResponse.data.results && moderationResponse.data.results[0].flagged) {
-        throw new Error('Your message content violates the terms of service.');
-      }
+  if (combinedInput.length > 0) {
+    const moderationResponse = await openai.createModeration({ input: combinedInput });
+    if (moderationResponse.data.results && moderationResponse.data.results[0].flagged) {
+      throw new Error('Your message content violates the terms of service.');
     }
-  } catch (e) {
-    // Handle moderation errors or timeouts
   }
 };
