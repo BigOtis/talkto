@@ -42,7 +42,14 @@ const Stats = () => {
   const topAvatars = Array.isArray(stats?.topAvatars) ? stats.topAvatars : [];
   const totalUsers = typeof stats?.totalUsers === 'number' ? stats.totalUsers : 0;
   const messagesThisMonth = typeof stats?.messagesThisMonth === 'number' ? stats.messagesThisMonth : 0;
+  const messagesAllTime = typeof stats?.messagesAllTime === 'number' ? stats.messagesAllTime : 0;
   const totalCharacters = typeof stats?.totalCharacters === 'number' ? stats.totalCharacters : 0;
+
+  function formatNumber(n) {
+    if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+    if (n >= 1e3) return (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'k';
+    return n;
+  }
 
   return (
     <Container className="mt-5">
@@ -59,8 +66,10 @@ const Stats = () => {
         <Col md={4} sm={12} className="mb-3">
           <Card>
             <Card.Body>
-              <Card.Title>Messages This Month</Card.Title>
-              <Card.Text style={{ fontSize: '2rem', fontWeight: 'bold' }}>{messagesThisMonth}</Card.Text>
+              <Card.Title>Messages This Month / All Time</Card.Title>
+              <Card.Text style={{ fontSize: '2rem', fontWeight: 'bold' }}>
+                {formatNumber(messagesThisMonth)} / {formatNumber(messagesAllTime)}
+              </Card.Text>
             </Card.Body>
           </Card>
         </Col>
@@ -91,19 +100,19 @@ const Stats = () => {
               </thead>
               <tbody>
                 {topAvatars.map((avatar, idx) => (
-                  <tr key={avatar.name || idx}>
+                  <tr key={avatar.viewableName || idx}>
                     <td>{idx + 1}</td>
                     <td>
                       {avatar.img_url ? (
-                        <Image src={avatar.img_url} roundedCircle width={48} height={48} alt={avatar.name} />
+                        <Image src={avatar.img_url} roundedCircle width={48} height={48} alt={avatar.viewableName} />
                       ) : (
                         <span>No Image</span>
                       )}
                     </td>
-                    <td>{(avatar.name && avatar.name.length > 30) ? avatar.name.slice(0, 30) + '...' : avatar.name || 'N/A'}</td>
+                    <td>{(avatar.viewableName && avatar.viewableName.length > 30) ? avatar.viewableName.slice(0, 30) + '...' : avatar.viewableName || 'N/A'}</td>
                     <td>{typeof avatar.messages === 'number' ? avatar.messages : 'N/A'}</td>
                     <td>
-                      {avatar.name ? <a href={`/redirect/${avatar.name}`}>Start Chat</a> : 'N/A'}
+                      {avatar.viewableName ? <a href={`/redirect/${avatar.viewableName}`}>Start Chat</a> : 'N/A'}
                     </td>
                   </tr>
                 ))}

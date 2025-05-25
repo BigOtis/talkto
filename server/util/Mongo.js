@@ -9,15 +9,14 @@ let avatarsIndex = new Map();
 // save a given avatar to the database
 exports.saveAvatarToDB = async (name, img_url, creatorIP) => {
   try {
-    let cleanName = name.replace(/[^a-zA-Z ]/g, "").replace(/\s/g, '').toLowerCase();
-    cleanName = cleanName.slice(0, 100); // limit to 100 chars
+    const trimmedName = name.trim().slice(0, 100); // preserve spaces/capitalization, limit to 100 chars
 
     const client = await MongoClient.connect(url, { useUnifiedTopology: true });
     const db = client.db('talktoai');
     const collection = db.collection('avatars');
 
     const doc = {
-      name: cleanName,
+      name: trimmedName,
       img_url: img_url,
       creatorIP: creatorIP,
     };
@@ -35,9 +34,9 @@ exports.saveAvatarToDB = async (name, img_url, creatorIP) => {
 // get a given avatar from the database
 exports.getAvatarFromDB = async (name) => {
   try {
-    const cleanName = name.replace(/[^a-zA-Z ]/g, "").replace(/\s/g, '').toLowerCase();
+    const trimmedName = name.trim().slice(0, 100);
 
-    const cachedAvatar = getFromCache(cleanName);
+    const cachedAvatar = getFromCache(trimmedName);
 
     if (cachedAvatar) {
       return cachedAvatar;
@@ -47,7 +46,7 @@ exports.getAvatarFromDB = async (name) => {
     const db = client.db('talktoai');
     const collection = db.collection('avatars');
 
-    const result = await collection.findOne({ name: cleanName });
+    const result = await collection.findOne({ name: trimmedName });
 
     client.close();
 
@@ -80,8 +79,7 @@ function getFromCache(name) {
 
 exports.saveStatsToDB = async (name, creatorIP, email) => {
   try {
-    let cleanName = name.replace(/[^a-zA-Z ]/g, "").replace(/\s/g, "").toLowerCase();
-    cleanName = cleanName.slice(0, 100); // limit to 100 chars
+    const trimmedName = name.trim().slice(0, 100);
 
     const client = await MongoClient.connect(url, { useUnifiedTopology: true });
     const db = client.db("talktoai");
@@ -90,7 +88,7 @@ exports.saveStatsToDB = async (name, creatorIP, email) => {
     await collection.createIndex({ name: 1 }, { unique: true });
 
     const nameDoc = await collection.findOneAndUpdate(
-      { name: cleanName },
+      { name: trimmedName },
       { $inc: { messages: 1 }, $set: { lastUpdate: new Date() } },
       { upsert: true, returnOriginal: false }
     );

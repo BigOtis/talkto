@@ -30,25 +30,31 @@ exports.getStats = async (req, res) => {
 
     console.log('Top avatars from stats:', topAvatars);
 
-    const clean = (name) => name?.replace(/[^a-zA-Z ]/g, "").replace(/\s/g, '').toLowerCase();
-    const avatarNames = topAvatars.map(a => clean(a.name));
+    // Use the name as entered (trimmed, max 100 chars)
+    const avatarNames = topAvatars.map(a => a.name.trim().slice(0, 100));
     const avatars = await db.collection('avatars')
       .find({ name: { $in: avatarNames } })
       .toArray();
 
     console.log('Matching avatars from avatars collection:', avatars);
 
-    // Build map with lowercased names
+    // Build map with names as entered
     const avatarMap = {};
-    avatars.forEach(a => { avatarMap[a.name] = a.img_url; });
+    avatars.forEach(a => {
+      avatarMap[a.name] = {
+        img_url: a.img_url,
+        viewableName: a.name
+      };
+    });
     const topAvatarsWithImages = topAvatars.map(a => {
-      const cname = clean(a.name);
+      const key = a.name.trim().slice(0, 100);
       return {
         name: a.name,
+        viewableName: avatarMap[key]?.viewableName || a.name,
         messages: a.messages,
-        img_url: avatarMap[cname] || null
+        img_url: avatarMap[key]?.img_url || null
       };
-    });    
+    });
 
     console.log('Final topAvatarsWithImages:', topAvatarsWithImages);
 
@@ -59,13 +65,19 @@ exports.getStats = async (req, res) => {
     const allStatsDoc = await db.collection('all_stats').findOne({ month, year });
     const messagesThisMonth = allStatsDoc ? allStatsDoc.messages : 0;
 
+    // 4. Messages all time
+    const allStatsCursor = await db.collection('all_stats').find({}, { projection: { messages: 1 } });
+    let messagesAllTime = 0;
+    await allStatsCursor.forEach(doc => { messagesAllTime += doc.messages || 0; });
+
     client.close();
 
     const stats = {
       totalUsers,
       totalCharacters,
       topAvatars: topAvatarsWithImages,
-      messagesThisMonth
+      messagesThisMonth,
+      messagesAllTime
     };
     console.log('Stats response:', stats);
     cachedStats = stats;
