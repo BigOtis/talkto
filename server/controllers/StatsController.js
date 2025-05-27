@@ -17,9 +17,21 @@ exports.getStats = async (req, res) => {
 
     // 1. Total users (unique IPs)
     const totalUsers = await db.collection('ip_stats').countDocuments();
-
+    // 1a. Total users active this month (by lastUpdate)
+    const nowDate = new Date();
+    const month = nowDate.getMonth() + 1;
+    const year = nowDate.getFullYear();
+    const startOfMonth = new Date(year, month - 1, 1);
+    const nextMonth = new Date(year, month, 1);
+    const totalUsersThisMonth = await db.collection('ip_stats').countDocuments({
+      lastUpdate: { $gte: startOfMonth, $lt: nextMonth }
+    });
     // 1b. Total characters created
     const totalCharacters = await db.collection('avatars').countDocuments();
+    // 1c. Total characters created this month (by createdAt)
+    const totalCharactersThisMonth = await db.collection('avatars').countDocuments({
+      createdAt: { $gte: startOfMonth, $lt: nextMonth }
+    });
 
     // 2. Top 10 avatars by messages
     const topAvatars = await db.collection('stats')
@@ -59,9 +71,6 @@ exports.getStats = async (req, res) => {
     console.log('Final topAvatarsWithImages:', topAvatarsWithImages);
 
     // 3. Messages sent this month
-    const nowDate = new Date();
-    const month = nowDate.getMonth() + 1;
-    const year = nowDate.getFullYear();
     const allStatsDoc = await db.collection('all_stats').findOne({ month, year });
     const messagesThisMonth = allStatsDoc ? allStatsDoc.messages : 0;
 
@@ -74,7 +83,9 @@ exports.getStats = async (req, res) => {
 
     const stats = {
       totalUsers,
+      totalUsersThisMonth,
       totalCharacters,
+      totalCharactersThisMonth,
       topAvatars: topAvatarsWithImages,
       messagesThisMonth,
       messagesAllTime

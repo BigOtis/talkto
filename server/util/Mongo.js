@@ -19,6 +19,7 @@ exports.saveAvatarToDB = async (name, img_url, creatorIP) => {
       name: trimmedName,
       img_url: img_url,
       creatorIP: creatorIP,
+      createdAt: new Date(),
     };
 
     await collection.insertOne(doc);

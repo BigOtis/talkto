@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Container, Row, Col, Card, Image, Spinner, Table } from 'react-bootstrap';
 import Header from '../components/Header';
+import './StatsSplit.css';
 
 const Stats = () => {
   const [stats, setStats] = useState(null);
@@ -44,6 +45,8 @@ const Stats = () => {
   const messagesThisMonth = typeof stats?.messagesThisMonth === 'number' ? stats.messagesThisMonth : 0;
   const messagesAllTime = typeof stats?.messagesAllTime === 'number' ? stats.messagesAllTime : 0;
   const totalCharacters = typeof stats?.totalCharacters === 'number' ? stats.totalCharacters : 0;
+  const totalUsersThisMonth = typeof stats?.totalUsersThisMonth === 'number' ? stats.totalUsersThisMonth : 0;
+  const totalCharactersThisMonth = typeof stats?.totalCharactersThisMonth === 'number' ? stats.totalCharactersThisMonth : 0;
 
   function formatNumber(n) {
     if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
@@ -59,17 +62,31 @@ const Stats = () => {
           <Card>
             <Card.Body>
               <Card.Title>Total Users</Card.Title>
-              <Card.Text style={{ fontSize: '2rem', fontWeight: 'bold' }}>{totalUsers}</Card.Text>
+              <Card.Text className="split-stat">
+                <span>{formatNumber(totalUsersThisMonth)}</span>
+                <span className="split-divider">/</span>
+                <span>{formatNumber(totalUsers)}</span>
+              </Card.Text>
+              <div className="split-labels">
+                <span>This Month</span>
+                <span>All Time</span>
+              </div>
             </Card.Body>
           </Card>
         </Col>
         <Col md={4} sm={12} className="mb-3">
           <Card>
             <Card.Body>
-              <Card.Title>Messages This Month / All Time</Card.Title>
-              <Card.Text style={{ fontSize: '2rem', fontWeight: 'bold' }}>
-                {formatNumber(messagesThisMonth)} / {formatNumber(messagesAllTime)}
+              <Card.Title>Messages</Card.Title>
+              <Card.Text className="split-stat">
+                <span>{formatNumber(messagesThisMonth)}</span>
+                <span className="split-divider">/</span>
+                <span>{formatNumber(messagesAllTime)}</span>
               </Card.Text>
+              <div className="split-labels">
+                <span>This Month</span>
+                <span>All Time</span>
+              </div>
             </Card.Body>
           </Card>
         </Col>
@@ -77,7 +94,15 @@ const Stats = () => {
           <Card>
             <Card.Body>
               <Card.Title>Total Characters Created</Card.Title>
-              <Card.Text style={{ fontSize: '2rem', fontWeight: 'bold' }}>{totalCharacters}</Card.Text>
+              <Card.Text className="split-stat">
+                <span>{formatNumber(totalCharactersThisMonth)}</span>
+                <span className="split-divider">/</span>
+                <span>{formatNumber(totalCharacters)}</span>
+              </Card.Text>
+              <div className="split-labels">
+                <span>This Month</span>
+                <span>All Time</span>
+              </div>
             </Card.Body>
           </Card>
         </Col>
