@@ -87,6 +87,14 @@ const Chat = () => {
   const [userAvatar, setUserAvatar] = useStickyState(userAvatarImg, "userAvatar");
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showEditContactModal, setShowEditContactModal] = useState(false);  
+  const [showGroupModal, setShowGroupModal] = useState(false);
+  const [groupName, setGroupName] = useState("");
+  const [groupParticipants, setGroupParticipants] = useState([]);
+  const [groupParticipantInput, setGroupParticipantInput] = useState("");
+  const [showAddAvatarModal, setShowAddAvatarModal] = useState(false);
+  const [addAvatarName, setAddAvatarName] = useState("");
+  const [addAvatarLoading, setAddAvatarLoading] = useState(false);
+  const [showParticipantsModal, setShowParticipantsModal] = useState(false);
 
   useEffect(() => {
     console.log("deletedContacts changed");
@@ -207,26 +215,63 @@ const Chat = () => {
   };
 
   const handleSendMessage = async (event) => {
-
-    // if we're already fetching a response, do nothing
     if (isFetchingResponse) {
       return;
     }
 
-    // Get the current contact and append the user's message to its message list
     const userMessage = {
       message: event.target.value,
       time: getDateTimeString(),
       isUser: true,
+      from: 'user',
     };
     contacts[currentContact].messages.push(userMessage);
     setMessageCount(messageCount + 1);
     setContacts([...contacts]);
 
-    // Clear the input now that the message has been sent
     event.target.value = "";
     setIsFetchingResponse(true);
     inputRef.current.focus();
+
+    // Group chat logic
+    if (contacts[currentContact].type === 'group' || contacts[currentContact].isGroup) {
+      const group = contacts[currentContact];
+      // Prepare the last 10 messages, prepending character messages with the sender's name
+      const lastMessages = group.messages.slice(-10).map(m => {
+        if (!m.isUser && m.from) {
+          return { ...m, message: `${m.from}: ${m.message}` };
+        }
+        return m;
+      });
+      // Randomly select a participant
+      const randomIdx = Math.floor(Math.random() * group.participants.length);
+      const participant = group.participants[randomIdx];
+      try {
+        const response = await Promise.race([
+          fetchChatResponse(participant, lastMessages),
+          timeout(120000),
+        ]);
+        const assistantMessage = {
+          message: response,
+          time: getDateTimeString(),
+          isUser: false,
+          from: participant.name,
+        };
+        group.messages.push(assistantMessage);
+      } catch (error) {
+        group.messages.push({
+          message: "Sorry, I've been a little overloaded with messages. I'm taking a short break. Chat with me again soon!",
+          time: getDateTimeString(),
+          isUser: false,
+          from: 'system',
+        });
+      } finally {
+        setIsFetchingResponse(false);
+      }
+      setMessageCount(messageCount + 1);
+      setContacts([...contacts]);
+      return;
+    }
 
     // Call the chat API to get a response from the assistant
     try {
@@ -387,12 +432,20 @@ const Chat = () => {
           aria-label="Chat messages"
         >
           <div className="mt-auto">
+            <div className="d-flex align-items-center mb-2">
+              <h6 className="mb-0">{contacts[currentContact].name}</h6>
+              {contacts[currentContact].isGroup && (
+                <span style={{ background: '#3b82f6', color: 'white', borderRadius: 6, fontSize: 12, padding: '2px 8px', marginLeft: 10 }}>Group</span>
+              )}
+            </div>
             <Message
               key={0}
               message={`Remember, this conversation is purely fictional and does not reflect the views of any real person or organization. Enjoy your chat with ${contacts[currentContact].name}!`}
               person={toni}
               isUser={false}
               time={""}
+              from={contacts[currentContact].messages[contacts[currentContact].messages.length - 1].from}
+              participants={contacts[currentContact].participants}
             />
             {contacts[currentContact].messages.map((msg, index) => (
               <Message
@@ -402,6 +455,8 @@ const Chat = () => {
                 isUser={msg.isUser}
                 time={msg.time}
                 userAvatar={userAvatar}
+                from={msg.from}
+                participants={contacts[currentContact].participants}
               />
             ))}
             {renderLoadingIndicator()}
@@ -726,6 +781,8 @@ const Chat = () => {
           <Dropdown.Item onClick={() => setShowAboutModal(true)}>About</Dropdown.Item>
           <Dropdown.Item onClick={handleEditContactClick}>Edit Contact</Dropdown.Item>
           <Dropdown.Item onClick={() => setShowDeleteContactModal(true)}>Delete Contact</Dropdown.Item>
+          <Dropdown.Item onClick={() => setShowAddAvatarModal(true)}>Add Avatar to Chat</Dropdown.Item>
+          <Dropdown.Item onClick={() => setShowParticipantsModal(true)}>View Participants</Dropdown.Item>
         </Dropdown.Menu>
       </Dropdown>
     </div>
@@ -753,12 +810,20 @@ const Chat = () => {
           aria-label="Chat messages"
         >
           <div className="mt-auto">
+            <div className="d-flex align-items-center mb-2">
+              <h6 className="mb-0">{contacts[currentContact].name}</h6>
+              {contacts[currentContact].isGroup && (
+                <span style={{ background: '#3b82f6', color: 'white', borderRadius: 6, fontSize: 12, padding: '2px 8px', marginLeft: 10 }}>Group</span>
+              )}
+            </div>
             <Message
               key={0}
               message={`Remember, this conversation is purely fictional and does not reflect the views of any real person or organization. Enjoy your chat with ${contacts[currentContact].name}!`}
               person={toni}
               isUser={false}
               time={""}
+              from={contacts[currentContact].messages[contacts[currentContact].messages.length - 1].from}
+              participants={contacts[currentContact].participants}
             />
             {contacts[currentContact].messages.map((msg, index) => (
               <Message
@@ -768,6 +833,8 @@ const Chat = () => {
                 isUser={msg.isUser}
                 time={msg.time}
                 userAvatar={userAvatar}
+                from={msg.from}
+                participants={contacts[currentContact].participants}
               />
             ))}
             <div ref={messagesEndRef} />
@@ -895,6 +962,97 @@ const Chat = () => {
         showAvatarModal={showAvatarModal}
         onAvatarChange={setUserAvatar}/>
       <EmailModal showEmailModal={showEmailModal} setShowEmailModal={setShowEmailModal} />
+      <Modal show={showGroupModal} onHide={() => setShowGroupModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Create Group Chat</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form.Group className="mb-3">
+            <Form.Label>Group Name</Form.Label>
+            <Form.Control type="text" value={groupName} onChange={e => setGroupName(e.target.value)} placeholder="Enter group name" />
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label>Add Participant</Form.Label>
+            <Form.Control type="text" value={groupParticipantInput} onChange={e => setGroupParticipantInput(e.target.value)} placeholder="Enter participant name" />
+            <Button className="mt-2" onClick={() => {
+              if (groupParticipantInput.trim() && !groupParticipants.includes(groupParticipantInput.trim())) {
+                setGroupParticipants([...groupParticipants, groupParticipantInput.trim()]);
+                setGroupParticipantInput("");
+              }
+            }}>Add</Button>
+          </Form.Group>
+          <div>
+            <strong>Participants:</strong>
+            <ul>
+              {groupParticipants.map((p, i) => (
+                <li key={i}>{p} <Button size="sm" variant="danger" onClick={() => setGroupParticipants(groupParticipants.filter((name, idx) => idx !== i))}>Remove</Button></li>
+              ))}
+            </ul>
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowGroupModal(false)}>Cancel</Button>
+          <Button variant="primary" onClick={() => {
+            if (groupName.trim() && groupParticipants.length > 0) {
+              setContacts([{ type: 'group', name: groupName.trim(), participants: groupParticipants.map(name => ({ name, avatar: '' })), messages: [] }, ...contacts]);
+              setShowGroupModal(false);
+              setGroupName("");
+              setGroupParticipants([]);
+            }
+          }}>Create Group</Button>
+        </Modal.Footer>
+      </Modal>
+      <Modal show={showAddAvatarModal} onHide={() => { setShowAddAvatarModal(false); setAddAvatarName(""); setAddAvatarLoading(false); }}>
+        <Modal.Header closeButton>
+          <Modal.Title>Add Avatar to Chat</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form.Group className="mb-3">
+            <Form.Label>Avatar Name</Form.Label>
+            <Form.Control type="text" value={addAvatarName} onChange={e => setAddAvatarName(e.target.value)} placeholder="Enter avatar name" />
+          </Form.Group>
+          {addAvatarLoading && <Spinner animation="border" />}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => { setShowAddAvatarModal(false); setAddAvatarName(""); setAddAvatarLoading(false); }}>Cancel</Button>
+          <Button variant="primary" disabled={addAvatarLoading || !addAvatarName.trim()} onClick={async () => {
+            setAddAvatarLoading(true);
+            const name = addAvatarName.trim();
+            let avatarUrl = await fetchImageUrl(name);
+            let greeting = await fetchGreetings(name);
+            if (!greeting) greeting = `Hello... you've reached ${name}.`;
+            if (!avatarUrl) avatarUrl = "https://via.placeholder.com/150";
+            // Prepare new participant
+            const newParticipant = { name, avatar: avatarUrl };
+            // If not a group, convert to group
+            let updatedContacts = [...contacts];
+            let contact = updatedContacts[currentContact];
+            if (!contact.isGroup) {
+              contact.isGroup = true;
+              contact.participants = [{ name: contact.name, avatar: contact.avatar, description: contact.description }];
+            }
+            contact.participants.push(newParticipant);
+            setContacts(updatedContacts);
+            setShowAddAvatarModal(false);
+            setAddAvatarName("");
+            setAddAvatarLoading(false);
+          }}>Add</Button>
+        </Modal.Footer>
+      </Modal>
+      <Modal show={showParticipantsModal} onHide={() => setShowParticipantsModal(false)}>
+        <Modal.Header closeButton><Modal.Title>Participants</Modal.Title></Modal.Header>
+        <Modal.Body>
+          {contacts[currentContact].participants && contacts[currentContact].participants.map((p, i) => (
+            <div key={i} className="d-flex align-items-center mb-2">
+              <Image src={p.avatar} roundedCircle style={{ width: 36, height: 36, marginRight: 12 }} alt={p.name + ' avatar'} />
+              <span>{p.name}</span>
+            </div>
+          ))}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowParticipantsModal(false)}>Close</Button>
+        </Modal.Footer>
+      </Modal>
     </Container>
   );
 };

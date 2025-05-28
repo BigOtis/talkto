@@ -9,7 +9,7 @@ const Contact = ({
   index,
   currentContact,
 }) => {
-  const lastMessage = person.messages[person.messages.length - 1].message;
+  const lastMessage = person.messages && person.messages.length > 0 ? person.messages[person.messages.length - 1].message : 'No messages yet.';
   let lastMessageTruncated = lastMessage.length > 60 ? lastMessage.substring(0, 60) + "..." : lastMessage;
 
   const shareUrl = `${window.location.origin}/redirect/${person.name.replace(
@@ -36,12 +36,16 @@ const Contact = ({
 
   return (
     <li
-      className={`contact-item d-flex justify-content-between align-items-center ${currentContact === index ? "selected" : ""}`}
+      className={`contact-item d-flex justify-content-between align-items-center ${currentContact === index ? "selected" : ""}${person.isGroup ? " group-chat-contact" : ""}`}
       aria-label={`Chat with ${person.name}`}
       tabIndex={0}
       onClick={() => handleContactClick(index)}
       onKeyPress={e => { if (e.key === 'Enter') handleContactClick(index); }}
-      style={{ outline: currentContact === index ? '2px solid #3b82f6' : 'none' }}
+      style={{
+        outline: currentContact === index ? '2px solid #3b82f6' : 'none',
+        background: person.isGroup ? '#e6f0fa' : undefined,
+        border: person.isGroup ? '2px solid #3b82f6' : undefined
+      }}
     >
       <div className="d-flex align-items-center">
         <Image

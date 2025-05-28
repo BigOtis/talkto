@@ -62,11 +62,11 @@ const generateChatResponse = async (contact, messages) => {
     tokens += messageTokens;
 
     if (tokens <= 10000) {
-      truncatedMessages.unshift(message);
-    } else {
-      break;
+        truncatedMessages.unshift(message);
+      } else {
+        break;
+      }
     }
-  }
 
   const formattedMessages = truncatedMessages.map((msg) => {
     const role = msg.isUser ? "user" : "assistant";
@@ -127,7 +127,12 @@ exports.getChatMessage = async (req, res) => {
   try {
     const { contact, messages } = req.body;
 
-    const result = await generateChatResponse(contact, messages);
+    let result = await generateChatResponse(contact, messages);
+
+    // Clean up double name prefix if present
+    if (result && contact && contact.name && result.startsWith(contact.name + ': ')) {
+      result = result.slice(contact.name.length + 2);
+    }
 
     res.json({ message: result });
 

@@ -1,7 +1,7 @@
 import React from "react";
 import { Image } from "react-bootstrap";
 
-const Message = ({ message, person, time, isUser, userAvatar }) => {
+const Message = ({ message, person, time, isUser, userAvatar, from, participants }) => {
   const convertNamesToLinks = (messageText) => {
     const urlPrefix = `${window.location.origin}/redirect/`;
     const nameTagRegex = /<name>(.+?)<\/name>/g;
@@ -13,6 +13,31 @@ const Message = ({ message, person, time, isUser, userAvatar }) => {
   };
 
   const messageHtml = { __html: convertNamesToLinks(message) };
+
+  // Group chat: show sender's avatar and name
+  if (!isUser && from && participants) {
+    const sender = participants.find(p => p.name === from);
+    if (sender) {
+      return (
+        <div className="d-flex flex-row justify-content-start align-items-end mb-2">
+          <Image
+            src={sender.avatar || person.avatar}
+            roundedCircle
+            className="me-2"
+            style={{ width: "44px", height: "44px", border: "2px solid #e0e7ef" }}
+            alt={`${sender.name} avatar`}
+          />
+          <div>
+            <div className="fw-bold small mb-1">{sender.name}</div>
+            <p className="message-bubble-ai" aria-label={`${sender.name} message`} dangerouslySetInnerHTML={messageHtml} />
+            <div className="d-flex justify-content-start">
+              <span className="message-timestamp" aria-label="Received time">{time}</span>
+            </div>
+          </div>
+        </div>
+      );
+    }
+  }
 
   if (isUser) {
     return (
@@ -37,29 +62,30 @@ const Message = ({ message, person, time, isUser, userAvatar }) => {
         />
       </div>
     );
-  } else {
-    return (
-      <div className="d-flex flex-row justify-content-start align-items-end mb-2">
-        <Image
-          src={person.avatar}
-          roundedCircle
-          className="me-2"
-          style={{ width: "44px", height: "44px", border: "2px solid #e0e7ef" }}
-          alt={`${person.name} avatar`}
+  }
+
+  // Fallback: normal 1:1 chat
+  return (
+    <div className="d-flex flex-row justify-content-start align-items-end mb-2">
+      <Image
+        src={person.avatar}
+        roundedCircle
+        className="me-2"
+        style={{ width: "44px", height: "44px", border: "2px solid #e0e7ef" }}
+        alt={`${person.name} avatar`}
+      />
+      <div>
+        <p
+          className="message-bubble-ai"
+          aria-label={`${person.name} message`}
+          dangerouslySetInnerHTML={messageHtml}
         />
-        <div>
-          <p
-            className="message-bubble-ai"
-            aria-label={`${person.name} message`}
-            dangerouslySetInnerHTML={messageHtml}
-          />
-          <div className="d-flex justify-content-start">
-            <span className="message-timestamp" aria-label="Received time">{time}</span>
-          </div>
+        <div className="d-flex justify-content-start">
+          <span className="message-timestamp" aria-label="Received time">{time}</span>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
 };
 
 export default Message;
