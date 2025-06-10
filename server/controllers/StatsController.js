@@ -3,7 +3,7 @@ const url = process.env.MONGO_URL;
 
 let cachedStats = null;
 let lastCacheTime = 0;
-const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_DURATION = 1 * 60 * 60 * 1000; // 1 hour
 
 exports.getStats = async (req, res) => {
   try {
